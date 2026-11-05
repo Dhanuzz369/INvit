@@ -40,7 +40,8 @@ function initReveals() {
     list
       .filter((el) => !el.classList.contains('is-in'))
       .forEach((el, i) => {
-        el.style.transitionDelay = i ? `${i * STAGGER}s` : '';
+        // a long batch (a jump down the page) never keeps the last part waiting
+        el.style.transitionDelay = i ? `${Math.min(i, 5) * STAGGER}s` : '';
         el.classList.add('is-in');
       });
   if (!('IntersectionObserver' in window)) {

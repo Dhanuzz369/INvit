@@ -994,7 +994,7 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
 
   .story { margin-top: 2rem; }
   .facts {
-    margin-top: 7.5rem;
+    margin-top: 6rem;
     display: flex;
     justify-content: space-between;
     gap: var(--gutter);
@@ -1003,9 +1003,10 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: var(--gutter);
     align-items: start;
-    margin-top: 5rem;
+    margin-top: 3.5rem;
   }
   .pic--coffee { grid-column: 7 / 13; }
+  @media (min-width: 64rem) { .pic--coffee { grid-column: 5 / 13; } }
 
   .programme__layout { max-width: 40rem; margin: 0 auto; }
 
@@ -1058,9 +1059,9 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   }
   .beats { gap: 2rem; }
 
-  .section--venue { min-height: 150vh; min-height: 150svh; padding: 0; } /* taste-skill-ignore */
+  .section--venue { min-height: 135vh; min-height: 135svh; padding: 0; } /* taste-skill-ignore */
   .venue__picture { position: absolute; inset: 0; height: auto; }
-  .venue__picture img { height: 122%; object-position: 50% 100%; }
+  .venue__picture img { height: 135%; object-position: 50% 100%; }
   .venue__caption { top: auto; bottom: calc(var(--margin) + var(--safe-bottom)); max-width: none; }
   .visit-card {
     position: sticky;
