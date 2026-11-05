@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EVENT, directionsUrl, buildIcs, rollRotation } from '../js/lib.js';
+import { EVENT, directionsUrl, buildIcs, rollRotation, cubicBezier, EASE_MOVE } from '../js/lib.js';
 
 test('directionsUrl builds a Google Maps directions link', () => {
   assert.equal(
@@ -35,4 +35,21 @@ test('buildIcs escapes semicolons in LOCATION', () => {
 test('buildIcs escapes commas in SUMMARY', () => {
   const ics = buildIcs({ ...EVENT, title: 'Karan, Swathi' });
   assert.ok(ics.includes('SUMMARY:Karan\\, Swathi'));
+});
+
+test('cubicBezier matches the CSS curve endpoints and shape', () => {
+  const linear = cubicBezier(0, 0, 1, 1);
+  for (const x of [0, 0.25, 0.5, 0.9, 1]) assert.ok(Math.abs(linear(x) - x) < 1e-5);
+  const out = cubicBezier(0.22, 1, 0.36, 1);
+  assert.equal(out(0), 0);
+  assert.equal(out(1), 1);
+  assert.ok(out(0.25) > 0.7, 'strong ease out is mostly done by a quarter of the time');
+  // in out curve: slow start, past halfway at the midpoint, monotonic
+  assert.ok(EASE_MOVE(0.5) > 0.5 && EASE_MOVE(0.5) < 0.7);
+  let prev = 0;
+  for (let x = 0.05; x <= 1; x += 0.05) {
+    assert.ok(EASE_MOVE(x) >= prev);
+    prev = EASE_MOVE(x);
+  }
+  assert.ok(EASE_MOVE(0.2) < 0.1);
 });
