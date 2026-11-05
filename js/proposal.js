@@ -1,7 +1,9 @@
 import { RING_RADIUS } from './rings.js';
-import { getHandsStagePose, getJourneyTimeline, handOffRings, redrawJourney, setHandsRest } from './journey.js';
+import {
+  getHandsStagePose, getJourneyEnd, getVirtualScroll, handOffRings, redrawJourney, setHandsRest, setPinLength,
+} from './journey.js';
 import { kneelPose, reachPose, createPoseSetter } from './couple-poses.js';
-import { segmentT, EASE_MOVE, EASE_OUT } from './lib.js';
+import { segmentT, EASE_MOVE, EASE_OUT, ringOwner, collapsePin } from './lib.js';
 
 // 7.5 The proposal. #proposal pins the moment the ring journey ends (its top
 // at the viewport top, the linked pair at the couple's clasped hands) and one
@@ -12,14 +14,16 @@ import { segmentT, EASE_MOVE, EASE_OUT } from './lib.js';
 //   she extends her hand  ->  the ring travels on a short arc onto her finger
 //   ->  a glint, petals drift down, hearts rise, her cheeks blush.
 //
-// Like the journey it tweens one number (progress 0..1) and render() turns it
-// into poses, so every beat scrubs backwards exactly. Layout is read only in
+// There is ONE lagged clock: the journey's master timeline runs on through
+// the pin (virtual scroll, scrubbed 0.8). Progress here is that clock's
+// position inside the pin, and ringOwner() hands the rings over at the same
+// lagged moment in both directions, so fast flicks never snap. render() turns
+// progress into poses, so every beat scrubs backwards exactly. Layout is read only in
 // measure() (every ScrollTrigger refresh); couple poses were sampled once in
 // viewBox units, so a frame is arithmetic plus cached quickSetter writes.
 
 const PIN_VH = 3; // pinned for 3 viewports of scroll
-const SCRUB = 0.8; // the journey's scrub, so both lag alike at the hand-over
-const EPS = 1e-4;
+const pinLength = () => Math.round(PIN_VH * window.innerHeight);
 
 // Beats, as fractions of the pinned scroll
 const B = {
@@ -30,19 +34,21 @@ const B = {
   reach: [0.47, 0.58], // she extends her hand
   travel: [0.58, 0.71], // the ring slides from his fingers onto her finger
   release: [0.5, 0.76], // his hand lowers under hers: room for the ring to cross
-  glint: [0.69, 0.79],
+  glint: [0.69, 0.79], // then a slow shimmer stays on the stone through the hold
   blush: [0.69, 0.81],
+  yes: [0.78, 0.88], // "She said yes" rises in
   petals: [0.7, 0.79], // petal start times spread over this window
-  hearts: [0.72, 0.8],
+  hearts: [0.76, 0.9], // the last hearts are still rising at the resting frame
 };
 const PETAL_LIFE = 0.16;
-const HEART_LIFE = 0.14;
+const HEART_LIFE = 0.16;
+const SHIMMER = 2.6; // seconds per shimmer on the stone during the hold
 
 // Ring sizes in couple viewBox units (outer radius)
 const R_LINK = 21; // the linked pair resting in the clasped hands
 const R_HOLD = 12; // her ring between his fingertips
-const R_FINGER = 12; // on her finger (a touch large, so it reads at phone size)
-const SQUASH = 0.55; // on the finger the ring is seen edge on: narrower along the finger
+const R_FINGER = 13; // on her finger (a touch large, so it reads at phone size)
+const SQUASH = 0.75; // a little narrower across the finger; stone stays upright, facing us
 const ARC_LIFT = 26; // the slide onto her finger rises this far over the straight line
 const WITHDRAW_ROT = -16; // her arm drops back toward her side while he kneels
 const RELEASE_ROT = 15; // his arm lowers by this much after the ring is on
@@ -50,6 +56,10 @@ const RELEASE_ROT = 15; // his arm lowers by this much after the ring is on
 const PETALS = 14;
 const HEARTS = 5;
 const JASMINE = '#FFFDF6';
+// Petals fall in lanes clear of both faces (viewBox x): left edge, between
+// them, right edge.
+const LANES = [[8, 40], [158, 252], [350, 394]];
+const LANE_OF = [0, 1, 1, 2, 1, 0, 1, 1, 2, 1, 1, 0, 2, 1];
 const MARIGOLD = '#E8833A';
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -119,17 +129,10 @@ function sample(svg) {
     lowered.push(ringAt());
   }
   apply(brideArm(0, 1));
-  const [base, wrist] = pointsIn(svg, finger, [[276, 310], [276, 298]]);
-  // The ring's stone points across the finger, upward; its local x lies along the finger.
-  const fx = base.x - wrist.x;
-  const fy = base.y - wrist.y;
-  let px = fy;
-  let py = -fx;
-  if (py > 0) [px, py] = [-px, -py];
-  const fingerRot = (Math.atan2(px, -py) * 180) / Math.PI;
+  const [base] = pointsIn(svg, finger, [[+finger.getAttribute('cx'), +finger.getAttribute('cy')]]);
   apply(groomPose(0, 0));
   apply(brideArm(0, 0));
-  return { held, lowered, finger: base, fingerRot };
+  return { held, lowered, finger: base };
 }
 
 // Linear between samples taken at even steps of t in [0, 1].
@@ -153,7 +156,10 @@ export function prepareProposal() {
   apply = createPoseSetter(gsap, svg);
   samples = sample(svg);
 
-  if (reducedMotion()) {
+  if (!reducedMotion()) {
+    // the journey's clock runs on through the pin (one lagged clock for both)
+    setPinLength(pinLength);
+  } else {
     setHandsRest(() => {
       const r = stage.getBoundingClientRect();
       const ppu = r.width / 400;
@@ -162,7 +168,7 @@ export function prepareProposal() {
         rose: {
           x: r.left + samples.finger.x * ppu,
           y: r.top + window.scrollY + samples.finger.y * ppu,
-          rotation: samples.fingerRot,
+          rotation: 0,
           scaleX: s * SQUASH,
           scaleY: s,
         },
@@ -194,8 +200,8 @@ function makeFx(stage) {
     const path = document.createElementNS(NS, 'path');
     path.setAttribute('d', jasmine ? PETAL_PATH.jasmine : PETAL_PATH.marigold);
     path.setAttribute('fill', jasmine ? JASMINE : MARIGOLD);
-    path.setAttribute('stroke', jasmine ? '#CDB592' : '#C8642A');
-    path.setAttribute('stroke-width', '0.7');
+    path.setAttribute('stroke', jasmine ? '#A8865A' : '#C8642A');
+    path.setAttribute('stroke-width', jasmine ? '1' : '0.7');
     g.appendChild(path);
     if (!jasmine) {
       const vein = document.createElementNS(NS, 'path');
@@ -207,18 +213,21 @@ function makeFx(stage) {
     }
     g.style.opacity = '0';
     svg.appendChild(g);
-    // Spread across the scene in even lanes, nudged at random
-    const x0 = 30 + ((i + 0.5) / PETALS) * 340 + (random() - 0.5) * 22;
+    // In a lane clear of the faces; sway and drift stay inside it
+    const [lo, hi] = LANES[LANE_OF[i]];
+    const sway = 3 + random() * 3;
+    const inLane = (x) => Math.min(Math.max(x, lo + sway + 4), hi - sway - 4);
+    const x0 = inLane(lerp(lo, hi, random()));
     petals.push({
       el: g,
       start: lerp(B.petals[0], B.petals[1], random()),
       x0,
       y0: -40 - random() * 110,
-      x1: x0 + (random() - 0.5) * 60,
+      x1: inLane(x0 + (random() - 0.5) * 40),
       y1: 470 + random() * 18, // comes to rest on the ground
       r0: random() * 360,
       spin: (random() < 0.5 ? -1 : 1) * (160 + random() * 260),
-      sway: 8 + random() * 12,
+      sway,
       waves: 1.2 + random() * 1.3,
       scale: 1 + random() * 0.6,
       restTilt: 70 + random() * 40, // lies flat-ish once landed
@@ -239,9 +248,9 @@ function makeFx(stage) {
       start: lerp(B.hearts[0], B.hearts[1], i / (HEARTS - 1)),
       x0: 196 + (random() - 0.5) * 40,
       y0: 248 + random() * 12,
-      x1: 150 + (i / (HEARTS - 1)) * 110 + (random() - 0.5) * 20,
+      x1: 160 + (i / (HEARTS - 1)) * 84 + (random() - 0.5) * 12, // between the faces
       y1: 90 + random() * 50,
-      sway: 6 + random() * 6,
+      sway: 4 + random() * 3,
       scale: 1 + random() * 0.5,
       last: -1,
     });
@@ -283,6 +292,7 @@ export function initProposal() {
   const section = $('proposal');
   const stage = $('couple-stage');
   const blush = $('bride-blush');
+  const yes = $('proposal-yes');
   if (!gsap || !ST || !section || !stage || !apply) return;
 
   const fx = makeFx(stage);
@@ -296,7 +306,7 @@ export function initProposal() {
     // (placed by the journey's hands rest), petals lie on the ground. No pin.
     apply(groomPose(1, 1));
     apply(brideArm(0, 1));
-    gsap.set(blush, { opacity: 1 });
+    gsap.set([blush, yes], { opacity: 1 });
     fx.petals.forEach((pt) => pt.set(petalVars(pt, 1)));
     return;
   }
@@ -310,8 +320,8 @@ export function initProposal() {
   const setLink = gsap.quickSetter(link, 'css');
   const setSpark = gsap.quickSetter(spark, 'css');
   const setBlush = gsap.quickSetter(blush, 'opacity');
+  const setYes = gsap.quickSetter(yes, 'css');
 
-  const state = { p: 0 };
   let geo = null;
   let owned = false;
   let lastScene = -1;
@@ -349,6 +359,8 @@ export function initProposal() {
     apply(groomPose(k, ease(B.release, p)));
     apply(brideArm(ease(B.withdraw, p), ease(B.reach, p)));
     setBlush(ease(B.blush, p, EASE_OUT));
+    const said = ease(B.yes, p, EASE_OUT); // rise 32px + fade, scrubbed
+    setYes({ opacity: said, y: 32 * (1 - said) });
     for (const pt of fx.petals) {
       const u = segmentT(p, pt.start, pt.start + PETAL_LIFE);
       if (u === pt.last) continue;
@@ -390,7 +402,7 @@ export function initProposal() {
       const pt = lerpPt(inHand, g.finger, u);
       pt.y -= Math.sin(Math.PI * u) * g.arcLift;
       const s = lerp(g.sHold, g.sFinger, u);
-      r = { ...pt, rotation: lerp(0, samples.fingerRot, u), sx: s * lerp(1, SQUASH, u), sy: s };
+      r = { ...pt, rotation: 0, sx: s * lerp(1, SQUASH, u), sy: s };
     }
     const goldTo = { x: inHand.x - 4 * g.ppu, y: inHand.y + 6 * g.ppu }; // into his palm
     const gs = lerp(sPair, g.sHold * 0.6, sep);
@@ -399,30 +411,43 @@ export function initProposal() {
       rose: r,
       gold: { ...gp, s: gs, opacity: 1 - segmentT(sep, 0.35, 0.9) },
       link: 1 - segmentT(sep, 0.1, 0.35),
-      glint: Math.sin(Math.PI * segmentT(p, B.glint[0], B.glint[1])),
     };
   }
 
-  function renderRings(p, dy) {
+  // The glint: one bright flash as the ring settles, easing into a slow,
+  // soft shimmer that stays on the stone for the rest of the pin.
+  function glintAt(p, time) {
+    const u = segmentT(p, B.glint[0], B.glint[1]);
+    if (u <= 0) return 0;
+    const shimmer = 0.42 + 0.16 * Math.sin((time / SHIMMER) * Math.PI * 2);
+    return u < 0.5 ? Math.sin(Math.PI * u) : lerp(1, shimmer, EASE_OUT((u - 0.5) * 2));
+  }
+
+  let lastSpark = -1;
+  function renderRings(p, dy, time) {
     const key = `${p}|${dy}`;
-    if (key === lastRings) return;
-    lastRings = key;
-    const pose = ringPose(p);
-    const r = pose.rose;
-    const roseVars = { x: r.x, y: r.y + dy, rotation: r.rotation, scaleX: r.sx, scaleY: r.sy };
-    setRose(roseVars);
-    setLink({ ...roseVars, opacity: pose.link });
-    setGold({ x: pose.gold.x, y: pose.gold.y + dy, rotation: 0, scaleX: pose.gold.s, scaleY: pose.gold.s, opacity: pose.gold.opacity });
-    if (pose.glint > 0) {
-      // over the stone, which points across her finger
-      const a = (r.rotation * Math.PI) / 180;
-      const tip = 50 * r.sy;
+    const pose = key === lastRings ? null : ringPose(p);
+    if (pose) {
+      lastRings = key;
+      const r = pose.rose;
+      const roseVars = { x: r.x, y: r.y + dy, rotation: r.rotation, scaleX: r.sx, scaleY: r.sy };
+      setRose(roseVars);
+      setLink({ ...roseVars, opacity: pose.link });
+      setGold({ x: pose.gold.x, y: pose.gold.y + dy, rotation: 0, scaleX: pose.gold.s, scaleY: pose.gold.s, opacity: pose.gold.opacity });
+      lastSpark = -1;
+    }
+    const glint = glintAt(p, time);
+    if (glint === lastSpark) return;
+    lastSpark = glint;
+    if (glint > 0) {
+      // over the upright stone of the ring on her finger
+      const r = ringPose(p).rose;
       setSpark({
-        x: r.x + Math.sin(a) * tip,
-        y: r.y + dy - Math.cos(a) * tip,
-        scale: 0.85 * pose.glint,
-        opacity: pose.glint,
-        rotation: 45 * pose.glint,
+        x: r.x,
+        y: r.y + dy - 50 * r.sy,
+        scale: 0.85 * glint,
+        opacity: Math.min(glint * 1.4, 1),
+        rotation: 45 * glint,
       });
     } else {
       setSpark({ opacity: 0, scale: 0 });
@@ -439,52 +464,43 @@ export function initProposal() {
     redrawJourney();
   }
 
-  const timeline = gsap.timeline({
-    defaults: { ease: 'none' }, // scroll is the clock
-    scrollTrigger: {
-      trigger: section,
-      start: 'top top', // = the journey's end: #proposal's top at the viewport top
-      end: () => `+=${Math.round(PIN_VH * window.innerHeight)}`,
-      pin: true,
-      anticipatePin: 1,
-      scrub: SCRUB,
-      invalidateOnRefresh: true,
-      onRefresh: () => {
-        geo = measure();
-        lastScene = -1;
-        lastRings = '';
-        tick();
-      },
+  // The pin only holds the section; the clock is the journey's (one lagged
+  // virtual scroll for both scenes). The pin starts exactly at the journey's
+  // end and lasts pinLength(), the length the journey's clock already spans.
+  // refreshPriority 1: the pin spacer exists before the journey re-measures.
+  const trigger = ST.create({
+    trigger: section,
+    start: 'top top', // = the journey's end: #proposal's top at the viewport top
+    end: () => `+=${pinLength()}`,
+    pin: true,
+    anticipatePin: 1,
+    refreshPriority: 1,
+    invalidateOnRefresh: true,
+    onRefresh: () => {
+      geo = measure();
+      lastScene = -1;
+      lastRings = '';
     },
   });
-  timeline.fromTo(state, { p: 0 }, { p: 1, duration: 1 });
-  const trigger = timeline.scrollTrigger;
+  handOffRings(true);
 
-  // The rings are ours while our lagged progress is past 0, or once the
-  // journey's lagged progress has reached its end with the scroll in the pin.
-  // Both scrubs lag alike, so the hand-over happens at the same pose either way.
-  const owns = (raw) => {
-    if (state.p > EPS) return true;
-    const jp = getJourneyTimeline()?.progress() ?? 1;
-    return raw >= trigger.start && jp >= 1 - EPS;
-  };
-  handOffRings(true, () => (geo ? owns(trigger.scroll()) : false));
-
-  // One per frame check (after GSAP and ScrollTrigger have updated): cheap
-  // when nothing changed, and it catches hand-overs that the journey's own
-  // lagged progress causes.
-  function tick() {
+  // One per frame check, after GSAP and ScrollTrigger have updated: the scene
+  // follows the shared clock; the rings are ours when ringOwner() says so.
+  function tick(time) {
     if (!geo) return;
-    const p = state.p;
+    const end = getJourneyEnd();
+    const v = getVirtualScroll();
+    const p = segmentT(v, end, end + trigger.end - trigger.start);
     renderScene(p);
-    const raw = trigger.scroll();
-    if (!owns(raw)) {
+    if (ringOwner(v, end) !== 'proposal') {
       if (owned) release();
       return;
     }
     owned = true;
-    const dy = raw < trigger.start ? trigger.start - raw : raw > trigger.end ? trigger.end - raw : 0;
-    renderRings(p, dy);
+    // the page offset: 0 while pinned, moving with the page before and after
+    const dy = trigger.start - collapsePin(trigger.scroll(), trigger.start, trigger.end - trigger.start);
+    renderRings(p, dy, time);
   }
   gsap.ticker.add(tick);
+  ST.refresh();
 }

@@ -93,3 +93,22 @@ test('pairPose keeps the rings a fixed distance apart as the pair turns', () => 
   assert.ok(Math.abs(turned.gold.y - 70) < 1e-9);
   assert.equal(turned.gold.rotation, 90);
 });
+
+test('ringOwner: the journey below its end, the proposal from the end on', async () => {
+  const { ringOwner } = await import('../js/lib.js');
+  assert.equal(ringOwner(0, 2776), 'journey');
+  assert.equal(ringOwner(2775.9, 2776), 'journey');
+  assert.equal(ringOwner(2776, 2776), 'proposal');
+  assert.equal(ringOwner(5308, 2776), 'proposal');
+  assert.equal(ringOwner(9999, 2776), 'proposal');
+});
+
+test('collapsePin: content offset collapses the pinned stretch', async () => {
+  const { collapsePin } = await import('../js/lib.js');
+  assert.equal(collapsePin(100, 2776, 2532), 100);
+  assert.equal(collapsePin(2776, 2776, 2532), 2776);
+  assert.equal(collapsePin(4000, 2776, 2532), 2776);
+  assert.equal(collapsePin(5308, 2776, 2532), 2776);
+  assert.equal(collapsePin(5408, 2776, 2532), 2876);
+  assert.equal(collapsePin(500, 2776, 0), 500);
+});

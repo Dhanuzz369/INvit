@@ -1,5 +1,5 @@
 import { RING_RADIUS, heroPose, markMeasured, refreshIfMoved } from './rings.js';
-import { rollRotation, segmentT, bezierPoint, pairPose, EASE_OUT } from './lib.js';
+import { rollRotation, segmentT, bezierPoint, pairPose, EASE_OUT, ringOwner, collapsePin } from './lib.js';
 
 // 7.3 / 7.4 The ring journey: hero -> About (meet and link) -> details card
 // (roll as a pair) -> proposal (glide to the hands).
@@ -28,7 +28,7 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 
 let timeline = null;
 let handedOff = false;
-let claimed = null; // optional predicate from Task 7: true while it owns the rings
+let pinLength = () => 0; // px #proposal stays pinned after "hands" (Task 7)
 let handsRest = null; // optional reduced motion pose at the hands (Task 7)
 let redraw = null;
 let geo = null;
@@ -38,8 +38,9 @@ let geo = null;
 // The master timeline: one tween of progress 0..1. Labels (positions are
 // fractions of the timeline, re-set on every refresh): "meet" (rings linked
 // at About), "roll" (leave About), "card" (resting on the card), "glide"
-// (leave the card), "hands" (= 1, the end: pair centred on #ring-anchor-hands
-// and #proposal's top at the viewport top). null before initJourney().
+// (leave the card), "hands" (pair centred on #ring-anchor-hands and
+// #proposal's top at the viewport top; = 1 when no pin length is set) and
+// "pinEnd" (= 1, the end of the proposal pin). null before initJourney().
 export function getJourneyTimeline() {
   return timeline;
 }
@@ -70,13 +71,24 @@ export function getJourneyEnd() {
 // the journey draws as usual, clamped to that end, and takes the rings back
 // as soon as the guest scrolls back up.
 //
-// With a `claim` predicate the gate is claim() instead of the raw scroll
-// test: the journey stays silent exactly while claim() is true. Task 7 claims
-// by its own lagged (scrubbed) progress, so the two scrubs hand over at the
-// same lagged moment in both directions instead of jumping.
-export function handOffRings(on = true, claim = null) {
+// With a pin length registered (setPinLength), the master timeline is ONE
+// lagged clock for both scenes: it runs on through the pin, and ownership is
+// ringOwner(getVirtualScroll(), getJourneyEnd()) instead of the raw scroll, so
+// a fast flick hands over at the same lagged moment in both directions.
+export function handOffRings(on = true) {
   handedOff = on;
-  claimed = claim;
+}
+
+// Task 7: px of scroll #proposal stays pinned after "hands" (read on every
+// refresh; call before initJourney). The master timeline then spans 0 ..
+// end + pin length, and the page offset collapses the pinned stretch.
+export function setPinLength(fn) {
+  pinLength = fn;
+}
+
+// The shared lagged clock: virtual scroll px (scrubbed, 0 .. end + pin length).
+export function getVirtualScroll() {
+  return geo && timeline ? timeline.progress() * geo.total : 0;
 }
 
 // Draws the journey's current pose now (Task 7 calls it when it lets go).
@@ -107,6 +119,7 @@ function measure() {
   const card = docBox($('details-card'));
   const hands = docBox($('ring-anchor-hands'));
   const end = Math.max(docBox($('proposal')).top, 1);
+  const pin = Math.max(pinLength() || 0, 0);
 
   const meet = { x: about.x, y: about.cy + LIFT };
   const rest = { x: card.x, y: card.top - RING_RADIUS }; // bands touching the card's top edge
@@ -153,7 +166,7 @@ function measure() {
   const sC0 = Math.max(sB1, end - GLIDE_SCROLL * vh);
 
   return {
-    end, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
+    end, pin, total: end + pin, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
     restHands: handsRest ? handsRest() : null,
     roseA: curveA(-1, hero.rose), goldA: curveA(1, hero.gold), curveC,
     sA, sB0, sB1, sC0,
@@ -194,7 +207,10 @@ function poseAt(v) {
     return { ...pairPose(p.x, p.y, turn, LINK), link: 1, spark: sparkAt(v) };
   }
   if (v < g.sC0) return { ...pairPose(g.rest.x, g.rest.y, 0, LINK), link: 1, spark: 0 };
-  const t = segmentT(v, g.sC0, g.end);
+  // smoothstep: leaves the card and arrives at the hands at rest, so a fast
+  // flick into the proposal never shows the pair stopping dead at the hand-over
+  const u = segmentT(v, g.sC0, g.end);
+  const t = u * u * (3 - 2 * u);
   const p = bezierPoint(...g.curveC, t);
   return { ...pairPose(p.x, p.y, 0, LINK), link: 1, spark: 0 };
 }
@@ -268,9 +284,10 @@ export function initJourney() {
     if (!geo || !trigger) return;
     const raw = trigger.scroll();
     // Past "hands" Task 7 owns the rings once handed off: never fight it.
-    if (handedOff && (claimed ? claimed() : raw >= geo.end)) return;
-    const scroll = handedOff ? Math.min(raw, geo.end) : raw;
-    const v = state.p * geo.end;
+    const virtual = state.p * geo.total;
+    if (handedOff && (geo.pin ? ringOwner(virtual, geo.end) === 'proposal' : raw >= geo.end)) return;
+    const scroll = handedOff ? (geo.pin ? collapsePin(raw, geo.end, geo.pin) : Math.min(raw, geo.end)) : raw;
+    const v = Math.min(virtual, geo.end);
     const key = `${v.toFixed(2)}|${scroll}`;
     if (!force && key === last) return;
     last = key;
@@ -318,7 +335,7 @@ export function initJourney() {
       // measure() reads layout here, once per refresh
       end: () => {
         geo = measure();
-        return geo.end;
+        return geo.total;
       },
       scrub: 0.8,
       invalidateOnRefresh: true,
@@ -326,7 +343,8 @@ export function initJourney() {
         const g = geo;
         for (const [name, at] of [
           ['meet', g.sA], ['roll', g.sB0], ['card', g.sB1], ['glide', g.sC0], ['hands', g.end],
-        ]) timeline.addLabel(name, at / g.end);
+        ]) timeline.addLabel(name, at / g.total);
+        timeline.addLabel('pinEnd', 1);
         markMeasured();
         render(true);
       },

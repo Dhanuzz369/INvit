@@ -146,7 +146,7 @@
           <path fill-rule="evenodd" fill="url(#curve-rose)" d="M0 -34 A34 34 0 1 1 0 34 A34 34 0 1 1 0 -34 Z M0 -28.5 A28.5 28.5 0 1 0 0 28.5 A28.5 28.5 0 1 0 0 -28.5 Z"/>
           <!-- edges: a hairline in screen px, so the ring keeps its outline when it
                shrinks onto her finger (js/proposal.js) -->
-          <g fill="none" stroke="#8E4F58" stroke-width="0.8" stroke-opacity="0.65" vector-effect="non-scaling-stroke">
+          <g fill="none" stroke="#8E4F58" stroke-width="1.2" stroke-opacity="0.7" vector-effect="non-scaling-stroke">
             <circle r="33.7" vector-effect="non-scaling-stroke"/>
             <circle r="28.8" vector-effect="non-scaling-stroke"/>
           </g>
@@ -355,6 +355,7 @@
     <!-- 7.5 Finale: the proposal -->
     <section id="proposal" class="section section--proposal" aria-labelledby="proposal-title">
       <h2 id="proposal-title" class="visually-hidden">The proposal</h2>
+      <p id="proposal-yes" class="proposal-yes">She said yes</p>
       <div id="couple-stage" class="couple-stage" role="img" aria-label="Illustration: Karan, in an ivory sherwani with a gold dupatta, kneels and slips the rose gold ring onto the finger of Swathi, in a rose lehenga.">
         <!-- inlined from assets/couple.svg (source of truth); poses in js/couple-poses.js -->
         <svg id="couple-svg" class="couple-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" aria-hidden="true" focusable="false">
@@ -584,11 +585,12 @@
                   <g id="bride-forearm-r">
                     <g transform="rotate(30 276 258)">
                       <g id="bride-hand">
-                        <path fill="#D9A27F" d="M268,298 C266,306 267,316 271,322 C273,325 277,325 278,322 L280,320 C283,322 286,318 284,312 L284,298 Z"/>
-                        <path fill="#D9A27F" d="M284,302 C290,306 290,312 286,314"/>
-                        <path stroke="#B9805E" stroke-width="1.3" d="M273,312 L274,320 M278,312 L279,320"/>
-                        <path fill="#E8A3A0" stroke="none" d="M270,318 a2,2 0 0 0 4,1 z"/>
-                        <circle id="ring-finger" cx="276" cy="310" r="1" fill="none" stroke="none"/>
+                        <!-- open, relaxed hand: thumb (palm side), then palm and four fingers held together -->
+                        <path fill="#D9A27F" d="M284,301 C291,303 294,310 291,317 C290,320 286,320 285,317 Z"/>
+                        <path fill="#D9A27F" d="M267,298 C266,308 266,320 268,330 C269,336 274,339 279,337 C283,335 285,330 285,324 L285,298 Z"/>
+                        <path stroke="#B9805E" stroke-width="1.1" d="M271.5,317 C271.5,325 272,331 273,335 M276,317 C276,326 276.5,332 277,337 M280.5,317 C280.5,324 281,329 282,333"/>
+                        <path fill="#E8A3A0" stroke="none" d="M268.6,331 a1.6,1.6 0 0 0 3,1.2 z"/>
+                        <circle id="ring-finger" cx="273.8" cy="320" r="1" fill="none" stroke="none"/>
                       </g>
                       <path fill="#D9A27F" d="M267,258 A9,9 0 0 1 285,258 L284,298 L268,298 Z"/>
                       <g fill="#C9A66B" stroke-width="1.6">

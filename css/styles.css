@@ -566,6 +566,26 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   overflow: visible;
 }
 
+/* "She said yes": in the empty band above the couple (the drawing's top
+   fifth is sky). Placed from the stage's own size, which the section centres. */
+.section--proposal { --stage-w: min(100vw - 2 * var(--gutter), 26rem, 70svh * 4 / 5); }
+.proposal-yes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--stage-w) * 0.625 - 0.5rem);
+  margin: 0;
+  text-align: center;
+  font-family: var(--font-script);
+  font-size: 2.75rem;
+  line-height: 1.2;
+  color: var(--rose-deep);
+  pointer-events: none;
+}
+@media (min-width: 48rem) { .proposal-yes { font-size: 3.5rem; } }
+html:not(.js-anim) .proposal-yes { display: none; } /* static couple stands: no "yes" yet */
+html.js-anim .proposal-yes { opacity: 0; }
+
 /* petals and hearts of the finale (js/proposal.js), over the couple */
 .proposal-fx {
   position: absolute;

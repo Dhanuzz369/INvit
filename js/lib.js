@@ -105,3 +105,18 @@ export function pairPose(cx, cy, angle, half) {
     gold: { x: cx + dx, y: cy + dy, rotation: angle },
   };
 }
+
+// Who draws the rings at lagged virtual scroll v (one scrubbed clock shared
+// by the journey and the proposal): the journey below its end (#proposal's top
+// at the viewport top), the proposal scene from there on. At v = end both draw
+// the same pose (the linked pair at the hands), so the hand-over is seamless.
+export function ringOwner(v, journeyEnd) {
+  return v < journeyEnd ? 'journey' : 'proposal';
+}
+
+// Raw scroll with a pinned stretch [start, start + len] collapsed to start:
+// how far the page content has actually moved.
+export function collapsePin(raw, start, len) {
+  if (raw <= start) return raw;
+  return raw <= start + len ? start : raw - len;
+}

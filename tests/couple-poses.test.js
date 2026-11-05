@@ -119,3 +119,14 @@ test('unsquashedFoot cancels the shin squash exactly', () => {
     }
   }
 });
+
+test('reachPose(1): her hand offered in front of him (pinned values)', () => {
+  assert.deepEqual(reachPose(1), {
+    '#bride-arm-r': { rotation: 12.6, svgOrigin: '276 216' },
+    '#bride-forearm-r': { rotation: 25, svgOrigin: '276 258' },
+  });
+  assert.deepEqual(REACH, reachPose(1));
+  const half = reachPose(0.5);
+  assert.equal(half['#bride-arm-r'].rotation, 6.3);
+  assert.equal(half['#bride-forearm-r'].rotation, 12.5);
+});
