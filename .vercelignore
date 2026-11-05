@@ -1,0 +1,7 @@
+docs/
+tests/
+scripts/
+.superpowers/
+package.json
+package-lock.json
+node_modules/

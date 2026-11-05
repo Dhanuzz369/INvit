@@ -119,3 +119,68 @@ test('the shipped .ics file matches buildIcs(EVENT) (run npm run build:ics after
   const noStamp = (s) => s.replace(/DTSTAMP:\d{8}T\d{6}Z/, 'DTSTAMP:');
   assert.equal(noStamp(shipped), noStamp(buildIcs(EVENT)));
 });
+
+test('foldIcsLine folds at 75 octets with CRLF + space, never inside a UTF-8 character', async () => {
+  const { foldIcsLine } = await import('../js/lib.js');
+  assert.equal(foldIcsLine('SHORT:line'), 'SHORT:line');
+  const long = 'LOCATION:' + 'x'.repeat(200);
+  const folded = foldIcsLine(long);
+  const parts = folded.split('\r\n');
+  assert.ok(parts.length > 1);
+  parts.forEach((p, i) => {
+    assert.ok(Buffer.byteLength(p, 'utf8') <= 75, `part ${i} is ${Buffer.byteLength(p, 'utf8')} octets`);
+    if (i) assert.ok(p.startsWith(' '));
+  });
+  assert.equal(parts.map((p, i) => (i ? p.slice(1) : p)).join(''), long, 'unfolding gives the line back');
+  // multi octet characters stay whole
+  const accents = foldIcsLine('SUMMARY:' + 'é'.repeat(80));
+  for (const p of accents.split('\r\n')) {
+    assert.ok(Buffer.byteLength(p, 'utf8') <= 75);
+    assert.ok(!p.includes('�'));
+  }
+});
+
+test('buildIcs: every content line is at most 75 octets (RFC 5545 3.1)', () => {
+  const ics = buildIcs(EVENT);
+  for (const line of ics.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, line);
+  assert.ok(ics.includes('\r\n '), 'the long LOCATION line is folded');
+});
+
+test('the shipped .ics file has no line over 75 octets', async () => {
+  const { readFileSync } = await import('node:fs');
+  const shipped = readFileSync(new URL('../assets/karan-swathi-engagement.ics', import.meta.url), 'utf8');
+  for (const line of shipped.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, line);
+});
+
+test('ringTransform writes translate, rotate, scale in that order (3 decimals)', async () => {
+  const { ringTransform } = await import('../js/lib.js');
+  assert.equal(ringTransform({}), 'translate(0 0) rotate(0) scale(1 1)');
+  assert.equal(
+    ringTransform({ x: 157.12345, y: -20.5, rotation: -8, scaleX: 0.3021, scaleY: 0.25 }),
+    'translate(157.123 -20.5) rotate(-8) scale(0.302 0.25)'
+  );
+  // the ring's own origin (0,0) lands exactly on (x, y) whatever the rotation
+  // and scale: no origin offset can creep in (the refresh drift this replaces)
+  const t = ringTransform({ x: 40, y: 60, rotation: 90, scaleX: 2, scaleY: 2 });
+  const apply = (px, py) => {
+    const [, tx, ty, r, sx, sy] = t.match(/translate\((\S+) (\S+)\) rotate\((\S+)\) scale\((\S+) (\S+)\)/).map(Number);
+    const a = (r * Math.PI) / 180;
+    const x = px * sx;
+    const y = py * sy;
+    return [tx + x * Math.cos(a) - y * Math.sin(a), ty + x * Math.sin(a) + y * Math.cos(a)];
+  };
+  assert.deepEqual(apply(0, 0), [40, 60]);
+  const [x, y] = apply(34, 0);
+  assert.ok(Math.abs(x - 40) < 1e-9 && Math.abs(y - 128) < 1e-9);
+});
+
+test('textProximity: 1 over text, easing to 0 across the feather', async () => {
+  const { textProximity } = await import('../js/lib.js');
+  const rects = [{ left: 0, right: 100, top: 0, bottom: 20 }];
+  assert.equal(textProximity(50, 10, 34, rects, 28), 1, 'centre inside');
+  assert.equal(textProximity(50, 50, 34, rects, 28), 1, 'band touching (gap 30 - 34 < 0)');
+  assert.equal(textProximity(50, 20 + 34 + 28, 34, rects, 28), 0, 'clear by the feather');
+  const mid = textProximity(50, 20 + 34 + 14, 34, rects, 28);
+  assert.ok(mid > 0 && mid < 1);
+  assert.equal(textProximity(50, 500, 34, [], 28), 0, 'no text');
+});

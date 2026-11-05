@@ -1,5 +1,7 @@
-import { RING_RADIUS, heroPose, markMeasured, refreshIfMoved } from './rings.js';
-import { rollRotation, segmentT, bezierPoint, pairPose, EASE_OUT, ringOwner, collapsePin } from './lib.js';
+import { RING_RADIUS, heroPose, markMeasured, refreshIfMoved, ringSetter, docRect } from './rings.js';
+import {
+  rollRotation, segmentT, bezierPoint, pairPose, EASE_OUT, ringOwner, collapsePin, textProximity,
+} from './lib.js';
 
 // 7.3 / 7.4 The ring journey: hero -> About (meet and link) -> details card
 // (roll as a pair) -> proposal (glide to the hands).
@@ -15,7 +17,15 @@ import { rollRotation, segmentT, bezierPoint, pairPose, EASE_OUT, ringOwner, col
 // them along their curves.
 //
 // Layout is only read in measure(), which runs on every ScrollTrigger
-// refresh; per frame there is arithmetic and four transform writes.
+// refresh; per frame there is arithmetic and four transform writes (plain
+// SVG transform attributes through ringSetter(), never GSAP's cache).
+//
+// Text stays readable: on phones the column is the full width, so no curve
+// can go round the words. While the rings are in transit (A, B, C) and pass
+// over text (hero lines, the story, the card rows), they fade to 35% and
+// shrink a little (TEXT_FADE, TEXT_SHRINK), easing back as they clear it;
+// at every rest they are whole. Wider screens cross less text, so the same
+// rule simply fires less.
 
 const LINK = 0.7 * RING_RADIUS; // linked pair: centres 1.4R apart, i.e. they overlap by 0.6R
 const LIFT = 9; // solitaire rises above the band: centre the pair optically (as heroPose)
@@ -23,6 +33,16 @@ const MEET_AT = 0.42; // About anchor's height in the viewport when the rings li
 const REST_AT = 0.3; // pair height in the viewport when it lands on the card
 const ROLL_SCROLL = 0.9; // at most this many viewports of scroll for the roll
 const GLIDE_SCROLL = 0.75; // ... and for the glide down to the hands
+const TEXT_FADE = 0.35; // ring opacity while over text in transit
+const TEXT_SHRINK = 0.82; // ... and scale
+const TEXT_FEATHER = 28; // px of clear space over which they ease back
+const TRANSIT_EDGE = 0.12; // first/last share of a transit over which the fade may start/stop
+// Text the rings would otherwise cover in transit
+const TEXT_BLOCKS = [
+  '#hero .label', '#hero-names', '.hero__engaged', '.hero__date', '#tagline',
+  '#about .label', '#about .script-title', '.story p',
+  '.card__title', '#details-card .detail-row', '#add-calendar',
+].join(',');
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -35,24 +55,14 @@ let geo = null;
 
 // --- Hand-off API for Task 7 (see task-5-report.md) --------------------------
 
-// The master timeline: one tween of progress 0..1. Labels (positions are
-// fractions of the timeline, re-set on every refresh): "meet" (rings linked
-// at About), "roll" (leave About), "card" (resting on the card), "glide"
-// (leave the card), "hands" (pair centred on #ring-anchor-hands and
-// #proposal's top at the viewport top; = 1 when no pin length is set) and
-// "pinEnd" (= 1, the end of the proposal pin). null before initJourney().
-export function getJourneyTimeline() {
-  return timeline;
-}
+// The master timeline (module internal) is one tween of progress 0..1.
+// Labels (fractions of the timeline, re-set on every refresh): "meet" (rings
+// linked at About), "roll" (leave About), "card" (resting on the card),
+// "glide" (leave the card), "hands" (pair centred on #ring-anchor-hands and
+// #proposal's top at the viewport top) and "pinEnd" (= 1, the end of the
+// proposal pin).
 
-// Document coordinate poses of the linked pair at #ring-anchor-hands:
-// { rose: {x, y, rotation}, gold: {...} }. Stage y = doc y - scroll while the
-// page scrolls normally; while #proposal is pinned that is doc y - journeyEnd.
-export function getHandsPose() {
-  return geo ? pairPose(geo.hands.x, geo.hands.y, 0, LINK) : null;
-}
-
-// The same poses in stage (viewport) coordinates at the "hands" label, i.e.
+// The linked pair at #ring-anchor-hands in stage (viewport) coordinates at the "hands" label, i.e.
 // with #proposal's top at the viewport top. This stays correct for the whole
 // time #proposal is pinned there.
 export function getHandsStagePose() {
@@ -107,10 +117,9 @@ export function setHandsRest(fn) {
 
 // -----------------------------------------------------------------------------
 
-const docBox = (el) => {
-  const r = el.getBoundingClientRect();
-  return { x: r.left + r.width / 2, top: r.top + window.scrollY, cy: r.top + r.height / 2 + window.scrollY };
-};
+// Document boxes, through the pin spacer for anything inside #proposal (a
+// refresh mid pin finds it fixed at the viewport top).
+const docBox = docRect;
 
 // All layout reads. Returns the curves and scroll windows for render().
 function measure() {
@@ -167,8 +176,14 @@ function measure() {
   const sB0 = Math.max(sA, sB1 - ROLL_SCROLL * vh);
   const sC0 = Math.max(sB1, end - GLIDE_SCROLL * vh);
 
+  // Text boxes in document coordinates (for the transit fade)
+  const text = [...document.querySelectorAll(TEXT_BLOCKS)].map((el) => {
+    const r = el.getBoundingClientRect();
+    return { left: r.left, right: r.right, top: r.top + window.scrollY, bottom: r.bottom + window.scrollY };
+  });
+
   return {
-    end, pin, total: end + pin, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
+    end, pin, total: end + pin, text, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
     restHands: handsRest ? handsRest() : null,
     roseA: curveA(-1, hero.rose), goldA: curveA(1, hero.gold), curveC,
     sA, sB0, sB1, sC0,
@@ -217,6 +232,23 @@ function poseAt(v) {
   return { ...pairPose(p.x, p.y, 0, LINK), link: 1, spark: 0 };
 }
 
+// 0..1: how far the rings fade and shrink at virtual scroll v for this pose
+// (document coordinates). Only in transit, ramped in and out at its edges so
+// the rests are always whole.
+function textFadeAt(v, pose) {
+  const g = geo;
+  const win = v < g.sA ? [0, g.sA] : v >= g.sB0 && v < g.sB1 ? [g.sB0, g.sB1] : v >= g.sC0 ? [g.sC0, g.end] : null;
+  if (!win) return 0;
+  const t = segmentT(v, win[0], win[1]);
+  const edge = Math.min(segmentT(t, 0, TRANSIT_EDGE), segmentT(1 - t, 0, TRANSIT_EDGE));
+  if (edge <= 0) return 0;
+  const near = Math.max(
+    textProximity(pose.rose.x, pose.rose.y, RING_RADIUS, g.text, TEXT_FEATHER),
+    textProximity(pose.gold.x, pose.gold.y, RING_RADIUS, g.text, TEXT_FEATHER)
+  );
+  return near * edge * edge * (3 - 2 * edge);
+}
+
 // Reduced motion: no travel. Each rest shows the rings standing still in
 // its place; in transit they are hidden. Visible while scroll is within a
 // rest's hold, widened by 35% of the neighbouring transits.
@@ -247,20 +279,19 @@ export function initJourney() {
   const spark = $('ring-sparkle');
   const reduced = reducedMotion();
 
-  gsap.set([link, spark], { svgOrigin: '0 0' });
-  gsap.set(spark, { opacity: 0, scale: 0 });
-  if (!reduced) gsap.set(link, { opacity: 0 });
-
-  const set = (el) => gsap.quickSetter(el, 'css');
-  const setRose = set(rose);
-  const setGold = set(gold);
-  const setLink = set(link);
-  const setSpark = set(spark);
+  // Stage level ring groups: plain SVG transforms, never GSAP's cache
+  const setRose = ringSetter(rose);
+  const setGold = ringSetter(gold);
+  const setLink = ringSetter(link);
+  const setSpark = ringSetter(spark);
+  setSpark({ opacity: 0, scale: 0 });
+  if (!reduced) setLink({ opacity: 0 });
 
   const state = { p: 0 };
   let trigger = null;
   let last = '';
   let sparkShown = false;
+  let faded = false;
 
   // Reduced motion: which rest is drawn, and which one we are fading to
   let placed = 'hero';
@@ -304,16 +335,39 @@ export function initJourney() {
       pose = poseAt(v);
     }
 
-    const rosePose = { x: pose.rose.x, y: pose.rose.y - scroll, rotation: pose.rose.rotation };
-    if (reduced) {
-      // only the reduced hands rest scales (the ring on her finger)
-      rosePose.scaleX = pose.rose.scaleX ?? 1;
-      rosePose.scaleY = pose.rose.scaleY ?? 1;
+    // Over text in transit: fade and shrink, the pair drawing in about its
+    // middle so linked bands stay linked.
+    const fade = reduced ? 0 : textFadeAt(v, pose);
+    const size = 1 - (1 - TEXT_SHRINK) * fade;
+    const alpha = 1 - (1 - TEXT_FADE) * fade;
+    if (fade > 0) {
+      const cx = (pose.rose.x + pose.gold.x) / 2;
+      const cy = (pose.rose.y + pose.gold.y) / 2;
+      const pull = (r) => ({ ...r, x: cx + (r.x - cx) * size, y: cy + (r.y - cy) * size });
+      pose = { ...pose, rose: pull(pose.rose), gold: pull(pose.gold) };
+    }
+
+    // only the reduced hands rest scales otherwise (the ring on her finger)
+    const rosePose = {
+      x: pose.rose.x,
+      y: pose.rose.y - scroll,
+      rotation: pose.rose.rotation,
+      scaleX: (pose.rose.scaleX ?? 1) * size,
+      scaleY: (pose.rose.scaleY ?? 1) * size,
+    };
+    const goldPose = { x: pose.gold.x, y: pose.gold.y - scroll, rotation: pose.gold.rotation, scaleX: size, scaleY: size };
+    // ring opacity is written only around a fade (the drop and the
+    // reduced motion fades own it otherwise)
+    if (fade > 0 || faded) {
+      faded = fade > 0;
+      rosePose.opacity = alpha;
+      goldPose.opacity = alpha;
     }
     setRose(rosePose);
-    setGold({ x: pose.gold.x, y: pose.gold.y - scroll, rotation: pose.gold.rotation });
-    const linkPose = { x: pose.rose.x, y: pose.rose.y - scroll, rotation: pose.rose.rotation };
-    if (!reduced) linkPose.opacity = pose.link;
+    setGold(goldPose);
+    const linkPose = { ...rosePose };
+    delete linkPose.opacity;
+    if (!reduced) linkPose.opacity = pose.link * alpha;
     setLink(linkPose);
     if (!reduced) {
       if (pose.spark > 0 || sparkShown) {

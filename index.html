@@ -15,7 +15,8 @@
        blocked, very slow CDN) the timer drops to the static, readable layout
        and marks data-pending-expired, so a late main.js stays static too.
        Under reduced motion there is no envelope moment at all: html.js-reduced
-       hides it from first paint (the page below is fully readable without it). -->
+       hides it from first paint (the page below is fully readable without it).
+       An early tap on the envelope is remembered (data-early-open). -->
   <script>
     (function () {
       var root = document.documentElement;
@@ -25,9 +26,20 @@
         return;
       }
       root.classList.add('js-pending');
+      // A tap on the envelope before main.js is ready (the button and the
+      // envelope also take Enter and Space as clicks): remembered for
+      // js/envelope.js, which opens straight away once it starts.
+      function remember(e) {
+        var t = e.target;
+        if (root.classList.contains('js-pending') && t && t.closest && t.closest('#open-invite, #envelope .envelope')) {
+          root.setAttribute('data-early-open', '');
+        }
+      }
+      document.addEventListener('click', remember, true);
       setTimeout(function () {
         if (!root.classList.contains('js-pending')) return;
         root.classList.remove('js-pending');
+        root.removeAttribute('data-early-open'); // the static page shows; don't jump later
         root.setAttribute('data-pending-expired', '');
       }, 8000);
     })();
@@ -384,7 +396,13 @@
     <!-- 7.5 Finale: the proposal -->
     <section id="proposal" class="section section--proposal" aria-labelledby="proposal-title">
       <h2 id="proposal-title" class="visually-hidden">The proposal</h2>
-      <div id="couple-stage" class="couple-stage" role="img" aria-label="Karan kneels and places the ring on Swathi's finger">
+      <!-- the label describes what is shown: the static page has them standing
+           hand in hand; js/proposal.js swaps in data-label-motion once the
+           scene (kneel, ring on her finger) can play -->
+      <div id="couple-stage" class="couple-stage" role="img"
+           aria-label="Karan and Swathi stand together, holding hands"
+           data-label-static="Karan and Swathi stand together, holding hands"
+           data-label-motion="Karan kneels and places the ring on Swathi's finger">
         <!-- inlined from assets/couple.svg (source of truth); poses in js/couple-poses.js -->
         <svg id="couple-svg" class="couple-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" aria-hidden="true" focusable="false">
           <!--

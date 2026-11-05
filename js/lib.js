@@ -32,7 +32,29 @@ export function buildIcs(event) {
     'END:VEVENT',
     'END:VCALENDAR',
   ];
-  return lines.join('\r\n') + '\r\n';
+  return lines.map(foldIcsLine).join('\r\n') + '\r\n';
+}
+
+// RFC 5545 3.1: content lines longer than 75 octets are folded, CRLF then
+// one space, never splitting a UTF-8 character.
+export function foldIcsLine(line) {
+  const enc = new TextEncoder();
+  const parts = [];
+  let cur = '';
+  let size = 0;
+  for (const ch of line) {
+    const n = enc.encode(ch).length;
+    const max = parts.length ? 74 : 75; // continuation lines start with a space
+    if (size + n > max) {
+      parts.push(cur);
+      cur = '';
+      size = 0;
+    }
+    cur += ch;
+    size += n;
+  }
+  parts.push(cur);
+  return parts.join('\r\n ');
 }
 
 export function rollRotation(distancePx, radiusPx) {
@@ -119,4 +141,27 @@ export function ringOwner(v, journeyEnd) {
 export function collapsePin(raw, start, len) {
   if (raw <= start) return raw;
   return raw <= start + len ? start : raw - len;
+}
+
+// The SVG transform attribute for a ring's outer group. The stage level ring
+// groups are written directly (not through GSAP's transform cache, which
+// re-parses and drifts their origin after a ScrollTrigger refresh).
+const num = (n) => +(+n).toFixed(3);
+export function ringTransform({ x = 0, y = 0, rotation = 0, scaleX = 1, scaleY = 1 }) {
+  return `translate(${num(x)} ${num(y)}) rotate(${num(rotation)}) scale(${num(scaleX)} ${num(scaleY)})`;
+}
+
+// How close a ring (centre x, y, radius r) is to any of the text boxes
+// ({ left, top, right, bottom }, same coordinates): 1 when it touches one,
+// easing to 0 at `feather` px of clear space.
+export function textProximity(x, y, r, rects, feather) {
+  let gap = Infinity;
+  for (const b of rects) {
+    const dx = Math.max(b.left - x, 0, x - b.right);
+    const dy = Math.max(b.top - y, 0, y - b.bottom);
+    gap = Math.min(gap, Math.hypot(dx, dy) - r);
+    if (gap <= 0) return 1;
+  }
+  const u = 1 - segmentT(gap, 0, feather);
+  return u * u * (3 - 2 * u);
 }

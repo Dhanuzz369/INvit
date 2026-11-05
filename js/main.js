@@ -45,6 +45,28 @@ function initReveals() {
     { rootMargin: '0px 0px -10% 0px' }
   );
   items.forEach((el) => io.observe(el));
+
+  // The last lines sit too close to the bottom of the page to ever pass the
+  // 10% margin above. A zero height marker after them says the page end is
+  // in view: then everything still waiting comes in, one by one.
+  const closing = document.querySelector('.closing');
+  if (!closing) return;
+  const marker = document.createElement('span');
+  marker.className = 'reveal-end';
+  marker.setAttribute('aria-hidden', 'true');
+  closing.appendChild(marker);
+  const atEnd = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    atEnd.disconnect();
+    [...items]
+      .filter((el) => !el.classList.contains('is-in'))
+      .forEach((el, i) => {
+        el.style.transitionDelay = i ? `${i * 0.12}s` : '';
+        el.classList.add('is-in');
+        io.unobserve(el);
+      });
+  });
+  atEnd.observe(marker);
 }
 
 // If the motion layer throws, drop back to the static page: every detail

@@ -130,7 +130,3 @@ export function createPoseSetter(gsap, root = document) {
   };
 }
 
-// Applies a pose once (convenience; for per frame use createPoseSetter).
-export function setPose(gsap, pose, root = document) {
-  createPoseSetter(gsap, root)(pose);
-}

@@ -1,4 +1,4 @@
-import { RING_RADIUS } from './rings.js';
+import { RING_RADIUS, ringSetter } from './rings.js';
 import {
   getHandsStagePose, getJourneyEnd, getVirtualScroll, handOffRings, redrawJourney, setHandsRest, setPinLength,
 } from './journey.js';
@@ -292,6 +292,8 @@ let stopScene = null;
 export function stopProposal() {
   stopScene?.();
   stopScene = null;
+  const stage = document.getElementById('couple-stage');
+  if (stage?.dataset.labelStatic) stage.setAttribute('aria-label', stage.dataset.labelStatic);
 }
 
 export function initProposal() {
@@ -307,6 +309,9 @@ export function initProposal() {
   // It follows #couple-stage in the DOM, so it is read after the image.
   const yes = $('proposal-yes');
   if (!gsap || !ST || !section || !stage || !apply) return;
+
+  // The scene can play (or, under reduced motion, its finale shows): say so.
+  stage.setAttribute('aria-label', stage.dataset.labelMotion);
 
   const fx = makeFx(stage);
   stopScene = () => stage.querySelector('.proposal-fx')?.remove();
@@ -329,10 +334,11 @@ export function initProposal() {
   const gold = $('ring-gold');
   const link = $('ring-link');
   const spark = $('ring-sparkle');
-  const setRose = gsap.quickSetter(rose, 'css');
-  const setGold = gsap.quickSetter(gold, 'css');
-  const setLink = gsap.quickSetter(link, 'css');
-  const setSpark = gsap.quickSetter(spark, 'css');
+  // stage level ring groups: plain SVG transforms, never GSAP's cache (rings.js)
+  const setRose = ringSetter(rose);
+  const setGold = ringSetter(gold);
+  const setLink = ringSetter(link);
+  const setSpark = ringSetter(spark);
   const setBlush = gsap.quickSetter(blush, 'opacity');
   const setYes = gsap.quickSetter(yes, 'css');
 
@@ -477,8 +483,9 @@ export function initProposal() {
   function release() {
     owned = false;
     lastRings = '';
-    gsap.set([rose, gold, link], { scaleX: 1, scaleY: 1 });
-    gsap.set([rose, gold], { opacity: 1 });
+    setRose({ scaleX: 1, scaleY: 1, opacity: 1 });
+    setGold({ scaleX: 1, scaleY: 1, opacity: 1 });
+    setLink({ scaleX: 1, scaleY: 1 });
     setSpark({ opacity: 0, scale: 0 });
     redrawJourney();
   }

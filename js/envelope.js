@@ -16,10 +16,15 @@ export function initEnvelope() {
 
   // Static page (GSAP missing): the envelope is just the first screen and the
   // button scrolls on to the hero.
+  // A tap (or Enter) on the envelope while the page was still loading
+  // (html.js-pending) is remembered by the inline head script; honour it now.
+  const early = root.hasAttribute('data-early-open');
+  root.removeAttribute('data-early-open');
+
   if (!gsap || !root.classList.contains('js-anim')) {
-    button.addEventListener('click', () => {
-      hero?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
-    });
+    const toHero = () => hero?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth' });
+    button.addEventListener('click', toHero);
+    if (early) toHero();
     return Promise.resolve();
   }
 
@@ -51,15 +56,42 @@ export function initEnvelope() {
       }
     }
   }
+  const unlock = () => {
+    root.classList.remove('locked');
+    behind.forEach((el) => { el.inert = false; });
+  };
   root.classList.add('locked');
   behind.forEach((el) => { el.inert = true; });
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let opened = false;
+    let settled = false;
+
+    // Anything going wrong while opening must never leave the page locked:
+    // unlock, put the envelope away and reject, so js/main.js falls back to
+    // the static page.
+    const fail = (err) => {
+      if (settled) return;
+      settled = true;
+      try {
+        unlock();
+        section.hidden = true;
+      } finally {
+        reject(err);
+      }
+    };
 
     const open = () => {
       if (opened) return;
       opened = true;
+      try {
+        play();
+      } catch (err) {
+        fail(err);
+      }
+    };
+
+    const play = () => {
       button.disabled = true;
 
       // Measure at rest so the letter lands exactly over the screen.
@@ -73,16 +105,21 @@ export function initEnvelope() {
       const fill = Math.max(stage.width / card.width, stage.height / card.height) * 1.04;
 
       const finish = () => {
-        window.scrollTo(0, 0);
-        root.classList.remove('locked');
-        behind.forEach((el) => { el.inert = false; });
-        // Keep keyboard users in place: focus moves to the names, not the top of the body.
-        const names = document.getElementById('hero-names');
-        if (names) {
-          names.tabIndex = -1;
-          names.focus({ preventScroll: true });
+        if (settled) return;
+        try {
+          window.scrollTo(0, 0);
+          unlock();
+          // Keep keyboard users in place: focus moves to the names, not the top of the body.
+          const names = document.getElementById('hero-names');
+          if (names) {
+            names.tabIndex = -1;
+            names.focus({ preventScroll: true });
+          }
+          settled = true;
+          resolve();
+        } catch (err) {
+          fail(err);
         }
-        resolve();
       };
 
       gsap.set([seal, flap, letter], { willChange: 'transform, opacity' });
@@ -116,5 +153,6 @@ export function initEnvelope() {
 
     button.addEventListener('click', open);
     envelope.addEventListener('click', open);
+    if (early) open();
   });
 }

@@ -14,15 +14,21 @@
   --sage: #8FA58C;
   --card: #FFFDFB;
 
-  /* Derived shades (flat, mixed from the tokens above) */
+  /* Derived shades (flat), precomputed from the tokens above so older
+     Safari and WebViews without color-mix() get the same colours:
+     the comment after each gives the mix (in srgb) it stands for. */
   --rose-deep: #9A5662;           /* rose for small text: 4.66:1 on paper, 5.3:1 on card */
-  --ink-soft: color-mix(in srgb, var(--ink) 82%, var(--paper));
-  --gold-faint: color-mix(in srgb, var(--gold) 45%, transparent);
-  --envelope: color-mix(in srgb, var(--rose) 16%, var(--paper));
-  --envelope-pocket: color-mix(in srgb, var(--rose) 9%, var(--card));
-  --envelope-flap: color-mix(in srgb, var(--rose) 12%, var(--card));
+  --ink-soft: #5F675C;            /* ink 82%, paper */
+  --gold-faint: rgba(201, 166, 107, 0.45); /* gold 45%, transparent */
+  --envelope: #ECD8D6;            /* rose 16%, paper */
+  --envelope-pocket: #F9F0EF;     /* rose 9%, card */
+  --envelope-flap: #F6ECEB;       /* rose 12%, card */
   --wax: var(--rose);
-  --wax-deep: color-mix(in srgb, var(--rose) 88%, #5a2a33);
+  --wax-deep: #AC6671;            /* rose 88%, #5a2a33 */
+  --rose-a25: rgba(183, 110, 121, 0.25);
+  --ink-a35: rgba(62, 74, 61, 0.35);
+  --ink-a40: rgba(62, 74, 61, 0.4);
+  --wax-deep-a40: rgba(172, 102, 113, 0.4);
 
   --font-script: "Great Vibes", "Snell Roundhand", cursive;
   --font-serif: "Cormorant Garamond", "Cormorant", Garamond, "Times New Roman", serif;
@@ -61,6 +67,7 @@ body {
   font-size: 1.25rem;
   line-height: 1.6;
   font-weight: 400;
+  overflow-x: hidden; /* browsers without clip */
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -71,7 +78,7 @@ address { font-style: normal; }
 svg { display: block; }
 a { color: inherit; }
 
-::selection { background: color-mix(in srgb, var(--rose) 25%, transparent); }
+::selection { background: var(--rose-a25); }
 
 :focus-visible {
   outline: 1.5px solid var(--rose-deep);
@@ -207,7 +214,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   inset: 0;
   background: var(--envelope);
   border: 1px solid var(--gold);
-  box-shadow: 0 1.5rem 3rem -2rem color-mix(in srgb, var(--ink) 35%, transparent);
+  box-shadow: 0 1.5rem 3rem -2rem var(--ink-a35);
   z-index: 0;
 }
 
@@ -281,7 +288,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   z-index: 5;
   display: grid;
   place-items: center;
-  filter: drop-shadow(0 0.25rem 0.375rem color-mix(in srgb, var(--wax-deep) 40%, transparent));
+  filter: drop-shadow(0 0.25rem 0.375rem var(--wax-deep-a40));
 }
 .seal__wax { position: absolute; inset: 0; width: 100%; height: 100%; }
 .seal__outer { fill: var(--wax); }
@@ -503,7 +510,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   background: var(--card);
   padding: 2.75rem 1.75rem 2.5rem;
   text-align: center;
-  box-shadow: 0 1.5rem 3rem -2.5rem color-mix(in srgb, var(--ink) 40%, transparent);
+  box-shadow: 0 1.5rem 3rem -2.5rem var(--ink-a40);
 }
 .card__title { margin-bottom: 1.5rem; }
 
@@ -572,6 +579,11 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 /* "She said yes": in the empty band above the couple (the drawing's top
    fifth is sky). Placed from the stage's own size, which the section centres. */
 .section--proposal { --stage-w: min(100vw - 2 * var(--gutter), 26rem, 70svh * 4 / 5); }
+/* a custom property cannot fall back by repetition (svh would only fail
+   where it is used), so browsers without svh get the vh value here */
+@supports not (height: 1svh) {
+  .section--proposal { --stage-w: min(100vw - 2 * var(--gutter), 26rem, 70vh * 4 / 5); }
+}
 .proposal-yes {
   position: absolute;
   left: 0;
@@ -647,6 +659,7 @@ html.js-anim .proposal-yes { opacity: 0; }
 }
 
 .closing { margin-top: 4.5rem; }
+.reveal-end { display: block; height: 0; } /* page end marker (js/main.js) */
 .closing__love {
   font-family: var(--font-script);
   font-size: 3rem;

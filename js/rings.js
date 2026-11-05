@@ -1,4 +1,4 @@
-import { EASE_OUT } from './lib.js';
+import { EASE_OUT, ringTransform } from './lib.js';
 
 // 7.2 The rings. They live on #ring-stage, a fixed layer the size of the
 // viewport whose viewBox matches it in CSS px, so a ring's x/y is simply its
@@ -6,7 +6,10 @@ import { EASE_OUT } from './lib.js';
 //
 // Each ring has two transform layers:
 //   #ring-rose / #ring-gold   its place on the page (x, y, rotation). Owned by
-//                             the scroll journey (js/journey.js).
+//                             the scroll journey (js/journey.js), then the
+//                             proposal (js/proposal.js). Written through
+//                             ringSetter() as a plain transform attribute,
+//                             never through GSAP (see ringSetter).
 //   .ring__drop (inner)       the entrance only. Starts above the screen and
 //                             settles to identity, so it never fights the
 //                             outer layer.
@@ -37,12 +40,19 @@ const ANCHORS = ['ring-anchor-hero', 'ring-anchor-about', 'ring-anchor-details',
 // Document top of an anchor. Measured through its section's place in the flow
 // (the pin spacer, when ScrollTrigger pins #proposal), so a pinned section
 // does not read as "moved" at every scroll position.
-const docTop = (el) => {
+// Exported as docRect(): { left, right, top, bottom, x (centre), cy } with the
+// verticals in document coordinates, correct even mid pin (and mid refresh,
+// when a pinned section may be fixed at the viewport top).
+export function docRect(el) {
+  const r = el.getBoundingClientRect();
   const section = el.closest('section');
   const flow = section?.parentElement?.classList.contains('pin-spacer') ? section.parentElement : section;
-  if (!flow) return el.getBoundingClientRect().top + window.scrollY;
-  return el.getBoundingClientRect().top - section.getBoundingClientRect().top + flow.getBoundingClientRect().top + window.scrollY;
-};
+  const top = flow
+    ? r.top - section.getBoundingClientRect().top + flow.getBoundingClientRect().top + window.scrollY
+    : r.top + window.scrollY;
+  return { left: r.left, right: r.right, top, bottom: top + r.height, x: r.left + r.width / 2, cy: top + r.height / 2 };
+}
+const docTop = (el) => docRect(el).top;
 const anchorKey = () =>
   ANCHORS.map((id) => {
     const el = document.getElementById(id);
@@ -89,6 +99,33 @@ export function heroPose(which) {
   };
 }
 
+// The setter for a stage level ring group (#ring-rose, #ring-gold,
+// #ring-link, #ring-sparkle), shared by every module that moves it:
+// set({ x, y, rotation, scaleX, scaleY, scale, opacity }), any subset; the
+// rest keep their last value. It writes the SVG transform attribute directly
+// (and opacity as a style). GSAP's transform cache is kept out of these
+// groups on purpose: after a ScrollTrigger refresh while scrolled it
+// re-parsed them and drifted their origin, so the rings came back lopsided.
+const setters = new WeakMap();
+export function ringSetter(el) {
+  let set = setters.get(el);
+  if (set) return set;
+  const s = { x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1 };
+  let last = '';
+  set = (v) => {
+    if (v.scale !== undefined) s.scaleX = s.scaleY = v.scale;
+    for (const k of ['x', 'y', 'rotation', 'scaleX', 'scaleY']) if (v[k] !== undefined) s[k] = v[k];
+    const t = ringTransform(s);
+    if (t !== last) {
+      last = t;
+      el.setAttribute('transform', t);
+    }
+    if (v.opacity !== undefined) el.style.opacity = v.opacity;
+  };
+  setters.set(el, set);
+  return set;
+}
+
 // Prepare the stage and the hero before the envelope opens. Call once, early.
 export function initRings() {
   const gsap = window.gsap;
@@ -97,8 +134,9 @@ export function initRings() {
   if ('ResizeObserver' in window) new ResizeObserver(syncStage).observe(stage());
   else window.addEventListener('resize', syncStage);
 
-  // Ring art is drawn around (0,0): rotate both layers about that point.
-  gsap.set([rose, gold, rose.firstElementChild, gold.firstElementChild], { svgOrigin: '0 0' });
+  // Ring art is drawn around (0,0): the drop layers rotate about that point
+  // (the outer layers are plain SVG transforms, see ringSetter).
+  gsap.set([rose.firstElementChild, gold.firstElementChild], { svgOrigin: '0 0' });
   // Names wait for the rings.
   gsap.set('#hero-names > span', { opacity: 0 });
 }
