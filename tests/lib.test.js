@@ -26,3 +26,13 @@ test('rollRotation converts distance to degrees', () => {
   assert.equal(rollRotation(2 * Math.PI * 20, 20), 360);
   assert.equal(rollRotation(0, 20), 0);
 });
+
+test('buildIcs escapes semicolons in LOCATION', () => {
+  const ics = buildIcs({ ...EVENT, location: 'A; B' });
+  assert.ok(ics.includes('LOCATION:A' + String.fromCharCode(92) + '; B'));
+});
+
+test('buildIcs escapes commas in SUMMARY', () => {
+  const ics = buildIcs({ ...EVENT, title: 'Karan, Swathi' });
+  assert.ok(ics.includes('SUMMARY:Karan\\, Swathi'));
+});

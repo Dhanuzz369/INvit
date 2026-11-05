@@ -13,7 +13,7 @@ export function directionsUrl(lat, lng) {
 }
 
 const escapeText = (s) =>
-  String(s).replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 
 export function buildIcs(event) {
   const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
@@ -27,7 +27,7 @@ export function buildIcs(event) {
     `DTSTAMP:${stamp}`,
     `DTSTART:${event.startUtc}`,
     `DTEND:${event.endUtc}`,
-    `SUMMARY:${event.title}`,
+    `SUMMARY:${escapeText(event.title)}`,
     `LOCATION:${escapeText(event.location)}`,
     'END:VEVENT',
     'END:VCALENDAR',
