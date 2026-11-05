@@ -12,6 +12,79 @@ export function directionsUrl(lat, lng) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 }
 
+// --- The live invitation: the guest's name, the countdown, personal links ---
+
+export const SITE_URL = 'https://karan-swathi.vercel.app/';
+const NAME_MAX = 60; // characters, enough for "Ananya, Rohit & the children"
+
+// A guest's name as it may be written on the envelope: control characters,
+// invisible formatting and direction overrides out (joiners stay, Kannada and
+// Devanagari need them), angle brackets out, spaces collapsed, at most 60
+// characters. '' when nothing is left.
+const UNWANTED = /[\u0000-\u001F\u007F-\u009F\u00AD\u200B\u200E\u200F\u2028-\u202E\u2060-\u2064\u2066-\u2069\uFEFF<>]/g;
+export function cleanName(raw) {
+  if (typeof raw !== 'string') return '';
+  const s = raw.replace(UNWANTED, '').replace(/\s+/g, ' ').trim();
+  return [...s].slice(0, NAME_MAX).join('').trim();
+}
+
+// The guest named in a page address's query (?to=Ananya%20%26%20family).
+export function guestFromSearch(search) {
+  try {
+    return cleanName(new URLSearchParams(search || '').get('to') ?? '');
+  } catch {
+    return '';
+  }
+}
+
+// '20261115T053000Z' (the calendar's form) as a Date.
+export function icsToDate(s) {
+  const m = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(s);
+  return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6])) : new Date(NaN);
+}
+
+// The countdown in the facts row, counted in Bengaluru's calendar days
+// (IST, UTC+5:30, whatever the guest's own time zone): { main, note }, or
+// null for an invalid date.
+const IST = 330 * 60 * 1000;
+const DAY = 24 * 60 * 60 * 1000;
+const istDay = (t) => Math.floor((t + IST) / DAY);
+export function countdown(now, event = EVENT) {
+  const t = +now;
+  if (!Number.isFinite(t)) return null;
+  const start = +icsToDate(event.startUtc);
+  const end = +icsToDate(event.endUtc);
+  if (t >= end) return { main: 'With us in spirit', note: 'thank you for every blessing' };
+  const days = istDay(start) - istDay(t);
+  if (days <= 0) return { main: 'Today, at 11', note: 'see you at Udupi Aatithya' };
+  if (days === 1) return { main: 'Tomorrow', note: 'Sunday, 11 in the morning' };
+  return { main: `${days} days to go`, note: 'counting from today' };
+}
+
+// The message a guest receives with their link.
+export function shareMessage(link, name = '') {
+  const n = cleanName(name);
+  return (
+    `${n ? `Dear ${n}, ` : ''}Karan & Swathi are getting engaged on Sunday, 15 November 2026, ` +
+    `at 11 in the morning, at Udupi Aatithya, Chamrajpet, Bengaluru. Your invitation: ${link}`
+  );
+}
+
+// The invitation's address with the guest's name on it (no name: the plain
+// address). Any query or fragment on the base is dropped.
+export function personalLink(base, name = '') {
+  const url = new URL(base);
+  url.search = '';
+  url.hash = '';
+  const n = cleanName(name);
+  return n ? `${url.href}?to=${encodeURIComponent(n)}` : url.href;
+}
+
+// A WhatsApp link that opens a chat with this text ready to send.
+export function whatsappLink(text) {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
+
 const escapeText = (s) =>
   String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
 

@@ -2,12 +2,16 @@ import { initEnvelope } from './envelope.js';
 import { initRings, dropRings, refreshIfMoved } from './rings.js';
 import { initJourney } from './journey.js';
 import { prepareProposal, initProposal, stopProposal } from './proposal.js';
+import { initLive } from './live.js';
 
 // Calendar links point at the static assets/karan-swathi-engagement.ics
 // (written from js/lib.js by `npm run build:ics`), so they work without JS.
 
 const root = document.documentElement;
 
+// The guest's name, the countdown and the hosts' link tool come first and
+// do not depend on the motion layer (js/live.js).
+initLive();
 
 // Motion only when GSAP and its plugins loaded, and only if the early
 // envelope layer (js-pending, set in <head>) has not already given up on us
