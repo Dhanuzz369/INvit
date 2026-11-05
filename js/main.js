@@ -1,18 +1,22 @@
 import { initEnvelope } from './envelope.js';
 import { initRings, dropRings } from './rings.js';
 import { initJourney } from './journey.js';
-import { prepareProposal, initProposal } from './proposal.js';
+import { prepareProposal, initProposal, stopProposal } from './proposal.js';
 
 // Calendar links point at the static assets/karan-swathi-engagement.ics
 // (written from js/lib.js by `npm run build:ics`), so they work without JS.
 
 const root = document.documentElement;
 
-// Motion only when GSAP and its plugins loaded; otherwise the page stays
-// static and readable. Either way the early envelope layer (js-pending, set
-// in <head>) is handed over: to js-anim, or back to the plain layout.
+// Motion only when GSAP and its plugins loaded, and only if the early
+// envelope layer (js-pending, set in <head>) has not already given up on us
+// (data-pending-expired: a very slow CDN; switching on now would pull the
+// page out from under a guest who is already reading). Otherwise the page
+// stays static and readable. Either way js-pending is handed over: to
+// js-anim, or back to the plain layout.
 const { gsap, ScrollTrigger, MotionPathPlugin } = window;
-if (gsap && ScrollTrigger && MotionPathPlugin) {
+const expired = root.hasAttribute('data-pending-expired');
+if (gsap && ScrollTrigger && MotionPathPlugin && !expired) {
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
   root.classList.add('js-anim');
 }
@@ -44,12 +48,27 @@ function initReveals() {
 }
 
 // If the motion layer throws, drop back to the static page: every detail
-// readable, nothing locked, nothing pinned.
+// readable, nothing locked, pinned or still ticking, and no inline state left
+// behind by GSAP (names waiting at opacity 0, reveals mid rise, posed couple).
 function fallBack(err) {
   console.error(err);
-  ScrollTrigger?.getAll().forEach((t) => t.kill(true));
+  try {
+    stopProposal();
+    ScrollTrigger.getAll().forEach((t) => t.kill(true)); // reverts pins
+    gsap.globalTimeline.getChildren(true, true, true).forEach((t) => t.kill());
+    const touched = document.querySelectorAll(
+      '#hero-names > span, #tagline .w, .reveal, #ring-stage .ring, #ring-stage .ring > *,' +
+        ' #couple-svg g[id], #proposal-yes, #envelope *'
+    );
+    // only what GSAP actually touched (el._gsap), so untouched SVG keeps its markup
+    const cleared = [...touched].filter((el) => el._gsap);
+    if (cleared.length) gsap.set(cleared, { clearProps: 'all' });
+  } catch (cleanupErr) {
+    console.error(cleanupErr);
+  }
   root.classList.remove('js-anim', 'locked');
   document.querySelectorAll('[inert]').forEach((el) => { el.inert = false; });
+  document.querySelectorAll('#hero-names > span').forEach((el) => { el.style.opacity = '1'; });
   const envelope = document.getElementById('envelope');
   if (envelope) envelope.style.display = 'none';
 }

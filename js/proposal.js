@@ -285,6 +285,15 @@ function heartVars(h, u) {
 
 // --- The scene ---------------------------------------------------------------
 
+// Stops the scene for good (js/main.js calls it when the motion layer falls
+// back to the static page): leaves the ticker, stops observing, removes the
+// petals and hearts.
+let stopScene = null;
+export function stopProposal() {
+  stopScene?.();
+  stopScene = null;
+}
+
 export function initProposal() {
   const gsap = window.gsap;
   const ST = window.ScrollTrigger;
@@ -292,10 +301,15 @@ export function initProposal() {
   const section = $('proposal');
   const stage = $('couple-stage');
   const blush = $('bride-blush');
+  // "She said yes" stays in the accessibility tree even while it is
+  // invisible (no aria-hidden toggling): a screen reader reading straight
+  // through never scrubs the pin, so hiding it would mean never hearing it.
+  // It follows #couple-stage in the DOM, so it is read after the image.
   const yes = $('proposal-yes');
   if (!gsap || !ST || !section || !stage || !apply) return;
 
   const fx = makeFx(stage);
+  stopScene = () => stage.querySelector('.proposal-fx')?.remove();
   const setFx = (list) => list.forEach((o) => (o.set = gsap.quickSetter(o.el, 'css')));
   setFx(fx.petals);
   setFx(fx.hearts);
@@ -507,12 +521,17 @@ export function initProposal() {
     running = true;
     gsap.ticker.add(tick);
   }
-  new IntersectionObserver(
-    (entries) => {
-      near = entries[entries.length - 1].isIntersecting;
-      if (near) wake();
-    }
-  ).observe(section);
+  const io = new IntersectionObserver((entries) => {
+    near = entries[entries.length - 1].isIntersecting;
+    if (near) wake();
+  });
+  io.observe(section);
+  stopScene = () => {
+    io.disconnect();
+    gsap.ticker.remove(tick);
+    running = true; // wake() never adds it again
+    stage.querySelector('.proposal-fx')?.remove();
+  };
 
   function tick(time) {
     if (geo) frame(time);

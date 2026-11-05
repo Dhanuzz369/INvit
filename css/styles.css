@@ -704,6 +704,7 @@ html.js-anim .section--envelope {
   background: var(--paper);
 }
 html.js-anim .section--envelope[hidden] { display: none; }
+html.js-reduced .section--envelope { display: none; } /* reduced motion: no envelope moment (inline head script) */
 html.js-anim .envelope { cursor: pointer; }
 #hero-names:focus { outline: none; }
 
