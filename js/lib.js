@@ -77,3 +77,31 @@ export function cubicBezier(x1, y1, x2, y2) {
 
 export const EASE_OUT = cubicBezier(0.22, 1, 0.36, 1);
 export const EASE_MOVE = cubicBezier(0.77, 0, 0.175, 1);
+
+// Where v sits between start and end, clamped to 0..1 (0 when the range is empty).
+export function segmentT(v, start, end) {
+  if (end <= start) return v >= end ? 1 : 0;
+  return Math.min(Math.max((v - start) / (end - start), 0), 1);
+}
+
+// Point on a cubic Bézier through p0..p3 ({x, y}) at parameter t.
+export function bezierPoint(p0, p1, p2, p3, t) {
+  const u = 1 - t;
+  const a = u * u * u;
+  const b = 3 * u * u * t;
+  const c = 3 * u * t * t;
+  const d = t * t * t;
+  return { x: a * p0.x + b * p1.x + c * p2.x + d * p3.x, y: a * p0.y + b * p1.y + c * p2.y + d * p3.y };
+}
+
+// Two linked rings as one rigid body: centre (cx, cy), turned by angle
+// degrees, ring centres `half` px either side. Each ring turns with the pair.
+export function pairPose(cx, cy, angle, half) {
+  const rad = (angle * Math.PI) / 180;
+  const dx = Math.cos(rad) * half;
+  const dy = Math.sin(rad) * half;
+  return {
+    rose: { x: cx - dx, y: cy - dy, rotation: angle },
+    gold: { x: cx + dx, y: cy + dy, rotation: angle },
+  };
+}

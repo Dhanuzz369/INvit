@@ -1,6 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EVENT, directionsUrl, buildIcs, rollRotation, cubicBezier, EASE_MOVE } from '../js/lib.js';
+import {
+  EVENT,
+  directionsUrl,
+  buildIcs,
+  rollRotation,
+  cubicBezier,
+  EASE_MOVE,
+  segmentT,
+  bezierPoint,
+  pairPose,
+} from '../js/lib.js';
 
 test('directionsUrl builds a Google Maps directions link', () => {
   assert.equal(
@@ -52,4 +62,34 @@ test('cubicBezier matches the CSS curve endpoints and shape', () => {
     prev = EASE_MOVE(x);
   }
   assert.ok(EASE_MOVE(0.2) < 0.1);
+});
+
+test('segmentT clamps progress through a scroll window', () => {
+  assert.equal(segmentT(50, 0, 100), 0.5);
+  assert.equal(segmentT(-10, 0, 100), 0);
+  assert.equal(segmentT(150, 0, 100), 1);
+  assert.equal(segmentT(5, 10, 10), 0, 'empty window before its end');
+  assert.equal(segmentT(10, 10, 10), 1, 'empty window at its end');
+});
+
+test('bezierPoint hits both ends and the symmetric midpoint', () => {
+  const p0 = { x: 0, y: 0 };
+  const p1 = { x: 0, y: 10 };
+  const p2 = { x: 10, y: 10 };
+  const p3 = { x: 10, y: 0 };
+  assert.deepEqual(bezierPoint(p0, p1, p2, p3, 0), p0);
+  assert.deepEqual(bezierPoint(p0, p1, p2, p3, 1), p3);
+  const mid = bezierPoint(p0, p1, p2, p3, 0.5);
+  assert.equal(mid.x, 5);
+  assert.equal(mid.y, 7.5);
+});
+
+test('pairPose keeps the rings a fixed distance apart as the pair turns', () => {
+  const flat = pairPose(100, 50, 0, 20);
+  assert.deepEqual(flat.rose, { x: 80, y: 50, rotation: 0 });
+  assert.deepEqual(flat.gold, { x: 120, y: 50, rotation: 0 });
+  const turned = pairPose(100, 50, 90, 20);
+  assert.ok(Math.abs(turned.rose.x - 100) < 1e-9 && Math.abs(turned.rose.y - 30) < 1e-9);
+  assert.ok(Math.abs(turned.gold.y - 70) < 1e-9);
+  assert.equal(turned.gold.rotation, 90);
 });

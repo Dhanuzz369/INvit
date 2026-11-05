@@ -1,6 +1,7 @@
 import { EVENT, buildIcs } from './lib.js';
 import { initEnvelope } from './envelope.js';
 import { initRings, dropRings } from './rings.js';
+import { initJourney } from './journey.js';
 
 // Calendar links: an .ics file generated in the page from confirmed facts only.
 const icsHref = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(buildIcs(EVENT));
@@ -25,11 +26,15 @@ function initReveals() {
   }
   const io = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-in');
-        io.unobserve(entry.target);
-      });
+      // Items arriving together (the detail rows, a fast scroll) come in one
+      // by one, 0.12s apart, in document order.
+      entries
+        .filter((entry) => entry.isIntersecting)
+        .forEach((entry, i) => {
+          entry.target.style.transitionDelay = i ? `${i * 0.12}s` : '';
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);
+        });
     },
     { rootMargin: '0px 0px -10% 0px' }
   );
@@ -41,5 +46,6 @@ if (animated) initRings();
 await initEnvelope();
 if (animated) {
   dropRings();
+  initJourney();
   initReveals();
 }

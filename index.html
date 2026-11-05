@@ -126,6 +126,13 @@
         <stop offset="0" stop-color="#E8B4B8"/>
         <stop offset="1" stop-color="#8E4F58"/>
       </linearGradient>
+      <!-- Linked pair: the gold ring sits 47.6px right of the rose ring (in
+           the rose ring's own frame) and is drawn on top, except at the upper
+           crossing (around 23.8, -20), where this window lets the rose band
+           pass back over it. -->
+      <clipPath id="link-clip">
+        <rect x="12" y="-37" width="26" height="31"/>
+      </clipPath>
     </defs>
 
     <!-- Swathi's ring: rose gold with a round brilliant solitaire -->
@@ -133,12 +140,14 @@
       <g class="ring__drop">
         <!-- inside of the band (behind) -->
         <path d="M-28.5 0 A28.5 28.5 0 0 1 28.5 0 A28.5 25.6 0 0 0 -28.5 0 Z" fill="url(#inner-rose)" opacity="0.55"/>
-        <!-- band -->
-        <path fill-rule="evenodd" fill="url(#metal-rose)" d="M0 -34 A34 34 0 1 1 0 34 A34 34 0 1 1 0 -34 Z M0 -28.5 A28.5 28.5 0 1 0 0 28.5 A28.5 28.5 0 1 0 0 -28.5 Z"/>
-        <path fill-rule="evenodd" fill="url(#curve-rose)" d="M0 -34 A34 34 0 1 1 0 34 A34 34 0 1 1 0 -34 Z M0 -28.5 A28.5 28.5 0 1 0 0 28.5 A28.5 28.5 0 1 0 0 -28.5 Z"/>
-        <g fill="none" stroke="#8E4F58" stroke-width="0.6" stroke-opacity="0.55">
-          <circle r="33.7"/>
-          <circle r="28.8"/>
+        <!-- band (also drawn over the gold ring by #ring-link) -->
+        <g id="rose-band">
+          <path fill-rule="evenodd" fill="url(#metal-rose)" d="M0 -34 A34 34 0 1 1 0 34 A34 34 0 1 1 0 -34 Z M0 -28.5 A28.5 28.5 0 1 0 0 28.5 A28.5 28.5 0 1 0 0 -28.5 Z"/>
+          <path fill-rule="evenodd" fill="url(#curve-rose)" d="M0 -34 A34 34 0 1 1 0 34 A34 34 0 1 1 0 -34 Z M0 -28.5 A28.5 28.5 0 1 0 0 28.5 A28.5 28.5 0 1 0 0 -28.5 Z"/>
+          <g fill="none" stroke="#8E4F58" stroke-width="0.6" stroke-opacity="0.55">
+            <circle r="33.7"/>
+            <circle r="28.8"/>
+          </g>
         </g>
         <!-- shine -->
         <g fill="none" stroke="#FFFFFF" stroke-linecap="round">
@@ -207,6 +216,21 @@
           <path d="M26 17.6 A31.4 31.4 0 0 1 17.6 26" stroke-width="0.8" stroke-opacity="0.35"/>
         </g>
       </g>
+    </g>
+
+    <!-- The rose band's front crossing, drawn over the gold ring once they
+         link. Moves with #ring-rose (js/journey.js sets both). -->
+    <g id="ring-link" class="ring ring--link">
+      <g clip-path="url(#link-clip)">
+        <use href="#rose-band"/>
+      </g>
+    </g>
+
+    <!-- A short sparkle where the rings meet -->
+    <g id="ring-sparkle" class="ring ring--sparkle" fill="#FFFFFF" stroke="#C9A66B" stroke-width="0.5" stroke-linejoin="round">
+      <path d="M0 -10 L 1.6 -1.6 L 10 0 L 1.6 1.6 L 0 10 L -1.6 1.6 L -10 0 L -1.6 -1.6 Z"/>
+      <path transform="translate(-15 7) scale(0.45)" d="M0 -10 L 1.6 -1.6 L 10 0 L 1.6 1.6 L 0 10 L -1.6 1.6 L -10 0 L -1.6 -1.6 Z"/>
+      <path transform="translate(13 -11) scale(0.55)" d="M0 -10 L 1.6 -1.6 L 10 0 L 1.6 1.6 L 0 10 L -1.6 1.6 L -10 0 L -1.6 -1.6 Z"/>
     </g>
   </svg>
 

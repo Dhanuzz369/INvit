@@ -6,8 +6,7 @@ import { EASE_OUT } from './lib.js';
 //
 // Each ring has two transform layers:
 //   #ring-rose / #ring-gold   its place on the page (x, y, rotation). Owned by
-//                             whatever is driving the journey: followHero()
-//                             for now, Task 5's scroll story later.
+//                             the scroll journey (js/journey.js).
 //   .ring__drop (inner)       the entrance only. Starts above the screen and
 //                             settles to identity, so it never fights the
 //                             outer layer.
@@ -33,19 +32,27 @@ export function anchorCenter(el) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
-// Where the hero anchor sits in the document; a change means ring poses are stale.
-const anchorKey = () => {
-  const a = document.getElementById('ring-anchor-hero').getBoundingClientRect();
-  return `${a.left.toFixed(1)},${(a.top + window.scrollY).toFixed(1)}`;
-};
+// Where the ring anchors sit in the document; a change means ring poses are stale.
+const ANCHORS = ['ring-anchor-hero', 'ring-anchor-about', 'ring-anchor-details', 'ring-anchor-hands'];
+const anchorKey = () =>
+  ANCHORS.map((id) => {
+    const a = document.getElementById(id).getBoundingClientRect();
+    return `${a.left.toFixed(1)},${(a.top + window.scrollY).toFixed(1)}`;
+  }).join('|');
 let measuredKey = '';
 let refreshTimer = 0;
 
+// Call whenever ring poses have just been measured (on every ScrollTrigger refresh).
+export function markMeasured() {
+  measuredKey = anchorKey();
+}
+
 // ScrollTrigger re-measures on width changes by itself, but ignores
-// height-only resizes on touch devices and font swaps. Refresh (debounced)
-// only when the anchor has actually moved since the last measurement, so the
-// address bar showing or hiding (svh layout: anchors don't move) costs nothing.
-function refreshIfMoved() {
+// height-only resizes on touch devices and font swaps. Refresh (debounced
+// 200ms) only when an anchor has actually moved since the last measurement,
+// so the address bar showing or hiding (svh layout: anchors don't move)
+// costs nothing.
+export function refreshIfMoved() {
   clearTimeout(refreshTimer);
   refreshTimer = setTimeout(() => {
     if (measuredKey && anchorKey() !== measuredKey) window.ScrollTrigger?.refresh();
@@ -85,54 +92,6 @@ export function initRings() {
   gsap.set([rose, gold, rose.firstElementChild, gold.firstElementChild], { svgOrigin: '0 0' });
   // Names wait for the rings.
   gsap.set('#hero-names > span', { opacity: 0 });
-}
-
-// Places the rings at the hero anchor and keeps them there as the hero scrolls
-// away (the stage is fixed, so y has to follow the page): y = pose.y - scroll,
-// 1:1 from scroll 0 to the bottom of the hero. Poses are re-measured on every
-// ScrollTrigger refresh. (A scrubbed fromTo with function values and
-// invalidateOnRefresh did not re-measure: the timeline is not re-rendered when
-// its progress is unchanged, so this sets the values directly.)
-// Task 5 replaces this with the full journey: kill() the returned
-// ScrollTrigger and drive the same outer groups from heroPose() onwards.
-export function followHero() {
-  const gsap = window.gsap;
-  const ST = window.ScrollTrigger;
-  const hero = document.getElementById('hero');
-  const els = rings();
-  const end = () => hero.offsetTop + hero.offsetHeight;
-  let poses = {};
-  let endPx = 0;
-  // Per frame only y changes; x and rotation are set when (re)measured.
-  const setY = Object.fromEntries(Object.entries(els).map(([w, el]) => [w, gsap.quickSetter(el, 'y')]));
-
-  // Layout reads happen here only (on create and on refresh), never per frame.
-  const measure = () => {
-    for (const [which, el] of Object.entries(els)) {
-      poses[which] = heroPose(which);
-      gsap.set(el, { x: poses[which].x, rotation: poses[which].rotation });
-    }
-    endPx = end();
-    measuredKey = anchorKey();
-  };
-  const place = (scroll) => {
-    const travel = Math.min(Math.max(scroll, 0), endPx);
-    for (const which in setY) setY[which](poses[which].y - travel);
-  };
-
-  measure();
-  place(window.scrollY);
-  const trigger = ST.create({
-    start: 0,
-    end,
-    onRefresh: (self) => { measure(); place(self.scroll()); },
-    onUpdate: (self) => place(self.scroll()),
-  });
-
-  // Late font swaps move the hero without a resize.
-  document.fonts?.ready.then(refreshIfMoved);
-  document.fonts?.addEventListener?.('loadingdone', refreshIfMoved);
-  return trigger;
 }
 
 // Tagline (spec 7.6): each word goes from 30% to full opacity as it crosses
@@ -183,8 +142,6 @@ export function dropRings() {
   const heroReveals = gsap.utils.toArray('#hero .reveal');
   const [label, ...rest] = heroReveals;
   const showIn = (els) => () => els.forEach((el) => el.classList.add('is-in'));
-
-  followHero();
 
   // Reduced motion: everything in its final place, opacity only.
   if (reducedMotion()) {
