@@ -102,17 +102,22 @@ export function followHero() {
   const els = rings();
   const end = () => hero.offsetTop + hero.offsetHeight;
   let poses = {};
+  let endPx = 0;
+  // Per frame only y changes; x and rotation are set when (re)measured.
+  const setY = Object.fromEntries(Object.entries(els).map(([w, el]) => [w, gsap.quickSetter(el, 'y')]));
 
+  // Layout reads happen here only (on create and on refresh), never per frame.
   const measure = () => {
-    for (const which of Object.keys(els)) poses[which] = heroPose(which);
+    for (const [which, el] of Object.entries(els)) {
+      poses[which] = heroPose(which);
+      gsap.set(el, { x: poses[which].x, rotation: poses[which].rotation });
+    }
+    endPx = end();
     measuredKey = anchorKey();
   };
   const place = (scroll) => {
-    const travel = Math.min(Math.max(scroll, 0), end());
-    for (const [which, el] of Object.entries(els)) {
-      const p = poses[which];
-      gsap.set(el, { x: p.x, y: p.y - travel, rotation: p.rotation });
-    }
+    const travel = Math.min(Math.max(scroll, 0), endPx);
+    for (const which in setY) setY[which](poses[which].y - travel);
   };
 
   measure();
