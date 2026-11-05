@@ -138,9 +138,13 @@ a { color: inherit; }
 ::selection { background: var(--accent-a25); }
 
 :focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--ink);
   outline-offset: 4px;
 }
+.section--envelope :focus-visible,
+.section--hero .toprow :focus-visible,
+.section--details :focus-visible,
+.closing:focus-visible { outline-color: var(--paper); }
 
 .nowrap { white-space: nowrap; }
 [hidden] { display: none !important; }
@@ -498,8 +502,8 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 
 .about__head {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column-reverse; /* on a phone the rings meet just above the title */
+  align-items: flex-start;
 }
 .about__head .title { white-space: nowrap; }
 
@@ -534,7 +538,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   gap: 2.5rem;
 }
 .pic .pic__frame { aspect-ratio: 4 / 3; }
-.pic--jasmine { width: 72%; margin-left: auto; }
+.pic--jasmine { width: 72%; margin: 2.5rem 0 0 auto; }
 
 /* ---------- The programme card ---------- */
 .section--details {
@@ -582,6 +586,17 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   -webkit-user-select: none;
 }
 .bar summary::-webkit-details-marker { display: none; }
+.bar summary { transition: background-color var(--t-hover) ease; }
+.bar summary:active { background-color: #677A66; }
+@media (hover: hover) and (pointer: fine) {
+  .bar summary:hover { background-color: #637662; }
+  .host-tool__summary:hover { background-color: #E2D2CB; }
+}
+details[open] > .bar__panel,
+details[open] > .host-tool__body { animation: panel-in 260ms var(--ease-out); }
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(-6px); }
+}
 .bar__time {
   margin-left: auto;
   font-variant-numeric: tabular-nums lining-nums;
@@ -720,6 +735,7 @@ details[open] > summary .bar__plus { transform: rotate(45deg); }
 html:not(.js-anim) .proposal-yes { visibility: hidden; } /* static couple stands: the question, no "yes" yet */
 html.js-anim .proposal-yes { opacity: 0; }
 
+.proposal__say { display: grid; gap: 0.875rem; }
 .proposal__desc { max-width: 34ch; }
 
 .proposal__actions {
@@ -810,6 +826,22 @@ html.js-anim .proposal-yes { opacity: 0; }
   margin-top: 0.5rem;
 }
 
+/* a slow drift on the watercolour while the section passes (no script;
+   browsers without scroll timelines show it still) */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .venue__picture img {
+      animation: drift linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
+}
+@keyframes drift {
+  from { transform: translateY(-3%) scale(1.08); }
+  to { transform: translateY(3%) scale(1.08); }
+}
+
 /* ---------- The back of the card (curtain footer) ---------- */
 .closing {
   position: relative;
@@ -890,6 +922,8 @@ html.js-anim .proposal-yes { opacity: 0; }
   cursor: pointer;
 }
 .host-tool__summary::-webkit-details-marker { display: none; }
+.host-tool__summary { transition: background-color var(--t-hover) ease; }
+details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
 .host-tool__body {
   display: grid;
   gap: 0.5rem;
@@ -971,7 +1005,6 @@ html.js-anim .proposal-yes { opacity: 0; }
     align-items: start;
     margin-top: 5rem;
   }
-  .pic--jasmine { grid-column: 2 / 6; width: auto; margin: 7rem 0 0; }
   .pic--coffee { grid-column: 7 / 13; }
 
   .programme__layout { max-width: 40rem; margin: 0 auto; }
@@ -1019,6 +1052,7 @@ html.js-anim .proposal-yes { opacity: 0; }
   .proposal__plate { max-width: none; width: calc(var(--stage-w) * 1.32); }
   .proposal__text {
     justify-content: space-between;
+    gap: 2rem;
     max-width: 36rem;
     min-height: calc(var(--stage-w) * 1.32);
   }
@@ -1026,7 +1060,7 @@ html.js-anim .proposal-yes { opacity: 0; }
 
   .section--venue { min-height: 150vh; min-height: 150svh; padding: 0; } /* taste-skill-ignore */
   .venue__picture { position: absolute; inset: 0; height: auto; }
-  .venue__picture img { height: 100%; object-position: 50% 60%; }
+  .venue__picture img { height: 122%; object-position: 50% 100%; }
   .venue__caption { top: auto; bottom: calc(var(--margin) + var(--safe-bottom)); max-width: none; }
   .visit-card {
     position: sticky;
@@ -1042,8 +1076,12 @@ html.js-anim .proposal-yes { opacity: 0; }
     column-gap: var(--gutter);
     align-items: start;
   }
-  .about__head { grid-column: 1 / 7; }
-  .story { grid-column: 7 / 13; margin-top: 0.5rem; }
+  /* the rings meet in the space after the title, far enough from it that
+     the rose ring has faded while it slides past the last letters */
+  .about__head { grid-column: 1 / 7; grid-row: 1; flex-direction: row; align-items: center; gap: clamp(3rem, 7vw, 7rem); }
+  .story { grid-column: 7 / 13; grid-row: 1 / span 2; margin-top: 0.5rem; }
+  /* the jasmine sits under the title, beside the story that mentions it */
+  .pic--jasmine { grid-column: 1 / 6; grid-row: 2; width: auto; margin: 2.5rem 0 0; }
 
   /* the back of a postcard: message left, links and stamps right, the small
      print under the message, the hosts' tool under the links */
@@ -1056,7 +1094,7 @@ html.js-anim .proposal-yes { opacity: 0; }
     align-items: start;
   }
   .closing__side { flex-direction: column; align-items: stretch; gap: 1.5rem; }
-  .stamps { align-self: flex-end; }
+  .stamps { order: 0; align-self: flex-end; }
   .imprint { grid-row: 2; grid-column: 1; }
   .host-tool { grid-row: 2; grid-column: 2; }
 }
@@ -1072,6 +1110,28 @@ html.js-anim .reveal.is-in {
   transition: opacity 700ms var(--ease-out), transform var(--t-reveal) var(--ease-out);
 }
 html.js-anim #tagline .w { opacity: 0.3; }
+
+/* programme rows arrive one by one with a short rise */
+html.js-anim .bar.reveal { transform: translateY(16px); }
+/* pictures open like a shutter from the bottom edge while the picture
+   settles from a slight scale; the figure itself only fades */
+html.js-anim .pic.reveal,
+html.js-anim .programme__picture.reveal { transform: none; }
+html.js-anim .reveal .pic__frame {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1100ms var(--ease-in-out);
+}
+html.js-anim .reveal .pic__frame > * {
+  transform: scale(1.08);
+  transition: transform 1500ms var(--ease-soft);
+}
+html.js-anim .reveal.is-in .pic__frame { clip-path: inset(0); }
+html.js-anim .reveal.is-in .pic__frame > * { transform: none; }
+/* the visit card rises a little further, like a card laid on the picture */
+html.js-anim .visit-card.reveal { transform: translateY(40px); }
+/* the stamps settle onto the back of the card */
+html.js-anim .stamps.reveal { transform: translateY(16px) rotate(3deg); transform-origin: 100% 0; }
+html.js-anim .reveal.is-in { transform: none; }
 .reveal-end { display: block; height: 0; } /* page end markers (js/main.js) */
 
 /* Sealed envelope as a full screen layer over the page, so the hero is
@@ -1092,8 +1152,15 @@ html.js-anim .envelope { cursor: pointer; }
 #hero-names:focus { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .cell, .bar__plus { transition: none; }
-  html.js-anim .reveal { transform: none; }
+  .btn, .cell, .bar__plus, .bar summary { transition: none; }
+  details[open] > .bar__panel,
+  details[open] > .host-tool__body { animation: none; }
+  html.js-anim .reveal,
+  html.js-anim .bar.reveal,
+  html.js-anim .visit-card.reveal,
+  html.js-anim .stamps.reveal { transform: none; }
+  html.js-anim .reveal .pic__frame,
+  html.js-anim .reveal .pic__frame > * { clip-path: none; transform: none; transition: none; }
   html.js-anim .reveal.is-in { transition: opacity 700ms var(--ease-out); }
   html.js-anim #tagline .w { opacity: 1; }
 }
