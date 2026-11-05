@@ -50,8 +50,9 @@
             <path fill="#DCCDB0" stroke="none" d="M118,376 L124,376 L121,458 L115,458 Z"/>
             <path stroke="#CDBB98" stroke-width="1.4" d="M107,436 Q114,439 121,436 M107,444 Q114,447 121,444 M107,452 Q114,455 121,452"/>
           </g>
-          <path fill="#F1E6D0" d="M100,266 L128,266 L125,372 A11,11 0 0 1 103,372 Z"/>
-          <path fill="#DCCDB0" stroke="none" d="M120,270 L126.5,270 L124,370 L118,370 Z"/>
+          <path fill="#F1E6D0" d="M98,266 L130,266 C131.5,296 129.5,334 125,366 L125,372 A11,11 0 0 1 103,372 L103,366 C100,334 97.5,298 98,266 Z"/>
+          <path fill="#DCCDB0" stroke="none" d="M121.5,270 L128.6,270 C129.6,298 127.8,334 123.6,368 L118.2,368 C121.2,336 122.5,300 121.5,270 Z"/>
+          <path stroke="#CDBB98" stroke-width="1.4" d="M106,352 Q113,356 121,350 M108,360 Q114,363 120,359"/>
         </g>
       </g>
 
@@ -341,9 +342,10 @@
           <path stroke="#3A2620" stroke-width="2.2" d="M7,-12 Q14,-15 20,-11"/>
           <!-- nose and nath -->
           <path stroke="#B57A5A" stroke-width="1.8" d="M-3,10 Q-7,15 -2,17"/>
-          <circle cx="2" cy="18.5" r="5.5" fill="none" stroke="#C9A66B" stroke-width="1.8"/>
-          <circle cx="5.5" cy="23" r="1.6" fill="#FFF6E2" stroke="#C9A66B" stroke-width="0.8"/>
-          <path fill="none" stroke="#C9A66B" stroke-width="1.2" d="M7,20 Q22,26 30,4"/>
+          <path fill="none" stroke="#B8945A" stroke-width="0.9" d="M2.6,15.4 Q20,24 31,5"/>
+          <circle cx="0.6" cy="17.6" r="3.1" fill="none" stroke="#7A5A2A" stroke-width="2.4"/>
+          <circle cx="0.6" cy="17.6" r="3.1" fill="none" stroke="#E2C27E" stroke-width="1.2"/>
+          <circle cx="1.4" cy="20.6" r="1.1" fill="#FFF6E2" stroke="#7A5A2A" stroke-width="0.6"/>
           <!-- small shy smile -->
           <path fill="#B04A55" stroke-width="1.8" d="M-10,25 Q-4,27 2,25 Q-1,31 -4,31 Q-8,30 -10,25 Z"/>
           <!-- front hair with centre parting -->

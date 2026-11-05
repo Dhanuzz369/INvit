@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { KNEEL, REACH, THIGH, kneelPose, reachPose, unsquashedFoot } from '../js/couple-poses.js';
+import { KNEEL, REACH, THIGH, BACK_BALL, BACK_BALL_Y, kneelPose, reachPose, unsquashedFoot } from '../js/couple-poses.js';
 
 const svg = readFileSync(new URL('../assets/couple.svg', import.meta.url), 'utf8');
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
@@ -65,6 +65,35 @@ test('the front foot stays planted on the ground through the whole kneel', () =>
     const ankleY = hipY + THIGH * Math.cos(rad(thigh)) + 90 * Math.cos(rad(shin));
     assert.ok(Math.abs(ankleY - 462) < 0.01, `t=${i / 20}: ankle y ${ankleY}`);
   }
+});
+
+// 2x2 matrix of a GSAP svg transform (as _renderSVGTransforms builds it)
+function gsapMatrix({ rotation = 0, skewX = 0, scaleX = 1, scaleY = 1 }) {
+  const r = rad(rotation), k = rad(skewX), st = 1 / Math.cos(k);
+  return [
+    [Math.cos(r) * scaleX, -Math.sin(r - k) * scaleY * st],
+    [Math.sin(r) * scaleX, Math.cos(r - k) * scaleY * st],
+  ];
+}
+const mul = (A, B) => [
+  [A[0][0] * B[0][0] + A[0][1] * B[1][0], A[0][0] * B[0][1] + A[0][1] * B[1][1]],
+  [A[1][0] * B[0][0] + A[1][1] * B[1][0], A[1][0] * B[0][1] + A[1][1] * B[1][1]],
+];
+
+test('the back toes stay on the ground through the whole kneel (21 samples)', () => {
+  assert.equal(BACK_BALL_Y, 479);
+  for (let i = 0; i <= 20; i++) {
+    const p = kneelPose(i / 20);
+    assert.equal(p['#groom-leg-back-upper'].rotation, 0);
+    const kneeY = 372 + p['#groom-leg-back'].y; // thigh upright
+    const L = gsapMatrix(p['#groom-leg-back-lower']);
+    const ankleY = kneeY + L[1][1] * 90; // knee pivot 88 372 to ankle pivot 88 462
+    const M = mul(L, gsapMatrix(p['#groom-foot-back']));
+    const ballY = ankleY + M[1][0] * BACK_BALL.dx + M[1][1] * BACK_BALL.dy;
+    assert.ok(Math.abs(ballY - BACK_BALL_Y) <= 2, `t=${i / 20}: back toe y ${ballY.toFixed(2)}`);
+  }
+  // and the knee comes to rest on the ground at the end (knee cap radius 11)
+  assert.ok(Math.abs(372 + KNEEL['#groom-leg-back'].y + 11 - 473) < 0.01);
 });
 
 test('unsquashedFoot cancels the shin squash exactly', () => {
