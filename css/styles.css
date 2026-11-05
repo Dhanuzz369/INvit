@@ -566,6 +566,16 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   overflow: visible;
 }
 
+/* petals and hearts of the finale (js/proposal.js), over the couple */
+.proposal-fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
 /* where the couple's hands meet when standing: viewBox (211, 280) of 400 x 500 */
 .ring-anchor--hands {
   position: absolute;

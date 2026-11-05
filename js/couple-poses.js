@@ -85,12 +85,15 @@ export function kneelPose(t) {
 
 export const KNEEL = kneelPose(1);
 
-// Swathi lifts her right hand toward his raised hand (t in [0, 1]).
+// Swathi extends her right hand toward him (t in [0, 1]): the upper arm lifts
+// and the forearm comes up level, so her hand ends in front of him, just
+// above and left of his raised ring hand (ring finger at about 196, 240 in
+// KNEEL), with clear space between their hands for the ring to cross.
 export function reachPose(t) {
   t = clamp01(t);
   return {
-    '#bride-arm-r': { rotation: r3(10 * t), svgOrigin: '276 216' },
-    '#bride-forearm-r': { rotation: 0, svgOrigin: '276 258' },
+    '#bride-arm-r': { rotation: r3(12.6 * t), svgOrigin: '276 216' },
+    '#bride-forearm-r': { rotation: r3(25 * t), svgOrigin: '276 258' },
   };
 }
 

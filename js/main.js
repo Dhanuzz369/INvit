@@ -2,6 +2,7 @@ import { EVENT, buildIcs } from './lib.js';
 import { initEnvelope } from './envelope.js';
 import { initRings, dropRings } from './rings.js';
 import { initJourney } from './journey.js';
+import { prepareProposal, initProposal } from './proposal.js';
 
 // Calendar links: an .ics file generated in the page from confirmed facts only.
 const icsHref = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(buildIcs(EVENT));
@@ -46,6 +47,8 @@ if (animated) initRings();
 await initEnvelope();
 if (animated) {
   dropRings();
+  prepareProposal(); // before the journey: it reads the reduced motion hands rest
   initJourney();
+  initProposal(); // after the journey: the pin starts where the journey ends
   initReveals();
 }

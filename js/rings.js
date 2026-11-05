@@ -34,10 +34,19 @@ export function anchorCenter(el) {
 
 // Where the ring anchors sit in the document; a change means ring poses are stale.
 const ANCHORS = ['ring-anchor-hero', 'ring-anchor-about', 'ring-anchor-details', 'ring-anchor-hands'];
+// Document top of an anchor. Measured through its section's place in the flow
+// (the pin spacer, when ScrollTrigger pins #proposal), so a pinned section
+// does not read as "moved" at every scroll position.
+const docTop = (el) => {
+  const section = el.closest('section');
+  const flow = section?.parentElement?.classList.contains('pin-spacer') ? section.parentElement : section;
+  if (!flow) return el.getBoundingClientRect().top + window.scrollY;
+  return el.getBoundingClientRect().top - section.getBoundingClientRect().top + flow.getBoundingClientRect().top + window.scrollY;
+};
 const anchorKey = () =>
   ANCHORS.map((id) => {
-    const a = document.getElementById(id).getBoundingClientRect();
-    return `${a.left.toFixed(1)},${(a.top + window.scrollY).toFixed(1)}`;
+    const el = document.getElementById(id);
+    return `${el.getBoundingClientRect().left.toFixed(1)},${docTop(el).toFixed(1)}`;
   }).join('|');
 let measuredKey = '';
 let refreshTimer = 0;

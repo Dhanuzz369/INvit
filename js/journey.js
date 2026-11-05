@@ -28,6 +28,9 @@ const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)'
 
 let timeline = null;
 let handedOff = false;
+let claimed = null; // optional predicate from Task 7: true while it owns the rings
+let handsRest = null; // optional reduced motion pose at the hands (Task 7)
+let redraw = null;
 let geo = null;
 
 // --- Hand-off API for Task 7 (see task-5-report.md) --------------------------
@@ -66,8 +69,26 @@ export function getJourneyEnd() {
 // #ring-link (in both the animated and the reduced motion branch). Above it
 // the journey draws as usual, clamped to that end, and takes the rings back
 // as soon as the guest scrolls back up.
-export function handOffRings(on = true) {
+//
+// With a `claim` predicate the gate is claim() instead of the raw scroll
+// test: the journey stays silent exactly while claim() is true. Task 7 claims
+// by its own lagged (scrubbed) progress, so the two scrubs hand over at the
+// same lagged moment in both directions instead of jumping.
+export function handOffRings(on = true, claim = null) {
   handedOff = on;
+  claimed = claim;
+}
+
+// Draws the journey's current pose now (Task 7 calls it when it lets go).
+export function redrawJourney() {
+  redraw?.();
+}
+
+// Reduced motion only: fn() returns the pose shown at the "hands" rest in
+// DOCUMENT coordinates, { rose: {x, y, rotation, scaleX, scaleY} }, with the
+// gold ring and the link hidden. Read on every refresh (layout reads allowed).
+export function setHandsRest(fn) {
+  handsRest = fn;
 }
 
 // -----------------------------------------------------------------------------
@@ -133,6 +154,7 @@ function measure() {
 
   return {
     end, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
+    restHands: handsRest ? handsRest() : null,
     roseA: curveA(-1, hero.rose), goldA: curveA(1, hero.gold), curveC,
     sA, sB0, sB1, sC0,
   };
@@ -192,6 +214,7 @@ function restAt(s) {
 function restPose(key) {
   const g = geo;
   if (key === 'hero') return { rose: g.hero.rose, gold: g.hero.gold, link: 0, spark: 0 };
+  if (key === 'hands' && g.restHands) return { rose: g.restHands.rose, gold: pairPose(g.hands.x, g.hands.y, 0, LINK).gold, link: 0, spark: 0 };
   const at = key === 'about' ? g.meet : key === 'card' ? g.rest : g.hands;
   return { ...pairPose(at.x, at.y, 0, LINK), link: 1, spark: 0 };
 }
@@ -235,7 +258,8 @@ export function initJourney() {
       onComplete: () => {
         placed = key;
         render(true);
-        if (key) gsap.to(key === 'hero' ? [rose, gold] : all, { opacity: 1, duration: 0.4, ease: EASE_OUT });
+        const show = key === 'hero' ? [rose, gold] : key === 'hands' && geo.restHands ? [rose] : all;
+        if (key) gsap.to(show, { opacity: 1, duration: 0.4, ease: EASE_OUT });
       },
     });
   };
@@ -244,7 +268,7 @@ export function initJourney() {
     if (!geo || !trigger) return;
     const raw = trigger.scroll();
     // Past "hands" Task 7 owns the rings once handed off: never fight it.
-    if (handedOff && raw >= geo.end) return;
+    if (handedOff && (claimed ? claimed() : raw >= geo.end)) return;
     const scroll = handedOff ? Math.min(raw, geo.end) : raw;
     const v = state.p * geo.end;
     const key = `${v.toFixed(2)}|${scroll}`;
@@ -261,7 +285,13 @@ export function initJourney() {
       pose = poseAt(v);
     }
 
-    setRose({ x: pose.rose.x, y: pose.rose.y - scroll, rotation: pose.rose.rotation });
+    const rosePose = { x: pose.rose.x, y: pose.rose.y - scroll, rotation: pose.rose.rotation };
+    if (reduced) {
+      // only the reduced hands rest scales (the ring on her finger)
+      rosePose.scaleX = pose.rose.scaleX ?? 1;
+      rosePose.scaleY = pose.rose.scaleY ?? 1;
+    }
+    setRose(rosePose);
     setGold({ x: pose.gold.x, y: pose.gold.y - scroll, rotation: pose.gold.rotation });
     const linkPose = { x: pose.rose.x, y: pose.rose.y - scroll, rotation: pose.rose.rotation };
     if (!reduced) linkPose.opacity = pose.link;
@@ -317,5 +347,9 @@ export function initJourney() {
   document.fonts?.ready.then(refreshIfMoved);
   document.fonts?.addEventListener?.('loadingdone', refreshIfMoved);
 
+  redraw = () => {
+    last = '';
+    render(true);
+  };
   render(true);
 }
