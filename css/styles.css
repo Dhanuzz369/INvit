@@ -87,8 +87,9 @@ a { color: inherit; }
 }
 
 /* ---------- Layout ---------- */
-.section {
-  position: relative;
+.section { position: relative; }
+/* Base padding at zero specificity: section specific rules always override it */
+:where(.section) {
   padding:
     calc(5rem + var(--safe-top))
     calc(var(--gutter) + var(--safe-right))
@@ -325,9 +326,9 @@ a { color: inherit; }
 }
 
 .btn--primary {
-  background: var(--rose);
+  background: var(--rose-deep);   /* paper on rose-deep: 4.5:1+ (plain rose is only ~3.3:1) */
   color: var(--paper);
-  border-color: var(--rose);
+  border-color: var(--rose-deep);
   min-height: 3.25rem;
   padding-inline: 2.25rem;
   font-size: 1.25rem;
@@ -392,8 +393,9 @@ a { color: inherit; }
   flex-direction: column;
   align-items: center;
 }
-.names__one { align-self: center; transform: translateX(-0.35em); }
-.names__two { align-self: center; transform: translateX(0.3em); }
+/* Offsets use position, not transform, so animation can own transform */
+.names__one { align-self: center; position: relative; left: -0.35em; }
+.names__two { align-self: center; position: relative; left: 0.3em; }
 .names__amp {
   font-size: 0.55em;
   line-height: 0.9;
@@ -606,7 +608,8 @@ a { color: inherit; }
 /* ---------- Larger screens: same centred column, more air ---------- */
 @media (min-width: 48rem) {
   :root { --gutter: 3rem; }
-  .section { padding-top: calc(7rem + var(--safe-top)); padding-bottom: 7rem; }
+  /* :where() keeps this at zero specificity so section specific padding still wins */
+  :where(.section) { padding-top: calc(7rem + var(--safe-top)); padding-bottom: 7rem; }
   .frame--hero { padding: 1rem 3rem 3.5rem; }
   .orn { width: 7rem; height: 7rem; }
   .orn--sm { width: 5.5rem; height: 5.5rem; }
