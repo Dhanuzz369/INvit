@@ -1,7 +1,9 @@
 /* Karan & Swathi: engagement invitation
    Static look and layout. Everything is visible by default; states that hide
    content before an animation live only under html.js-anim (added by JS once
-   the animation libraries have loaded). */
+   the animation libraries have loaded). html.js-pending (set by the inline
+   head script, cleared by JS or a timer) only puts the envelope layer up
+   early, so nothing jumps when js-anim arrives. */
 
 /* ---------- Tokens ---------- */
 :root {
@@ -13,7 +15,7 @@
   --card: #FFFDFB;
 
   /* Derived shades (flat, mixed from the tokens above) */
-  --rose-deep: #9A5662;           /* rose for small text: 4.9:1 on paper */
+  --rose-deep: #9A5662;           /* rose for small text: 4.66:1 on paper, 5.3:1 on card */
   --ink-soft: color-mix(in srgb, var(--ink) 82%, var(--paper));
   --gold-faint: color-mix(in srgb, var(--gold) 45%, transparent);
   --envelope: color-mix(in srgb, var(--rose) 16%, var(--paper));
@@ -553,6 +555,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 
 .couple-stage {
   position: relative;
+  z-index: 1; /* petals drift over "She said yes", which follows in the DOM */
   width: min(100%, 26rem, calc(70vh * 4 / 5));
   width: min(100%, 26rem, calc(70svh * 4 / 5));
   aspect-ratio: 4 / 5;
@@ -691,7 +694,9 @@ html.js-anim #tagline .w { opacity: 0.3; }
 
 /* Sealed envelope as a full screen layer over the page, so the hero is
    already at the top of the scroll when it opens. Scroll locked meanwhile. */
-html.locked { overflow: hidden; }
+html.locked,
+html.js-pending { overflow: hidden; }
+html.js-pending .section--envelope,
 html.js-anim .section--envelope {
   position: fixed;
   inset: 0;

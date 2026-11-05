@@ -38,8 +38,19 @@ export function initEnvelope() {
   const letterInner = letter.children;
   const hint = [section.querySelector('.envelope__label'), button];
 
-  // Everything behind the envelope is out of reach until it opens.
-  const behind = [...section.parentElement.children].filter((el) => el !== section);
+  // Everything behind the envelope is out of reach until it opens: the
+  // HTML siblings of the section and of each ancestor up to <body>, so
+  // nothing outside <main> is reachable either. (The SVG layers at the top of
+  // <body>, the sprite and the ring stage, are aria-hidden and hold nothing
+  // focusable; scripts are skipped.)
+  const behind = [];
+  for (let el = section; el && el !== document.body; el = el.parentElement) {
+    for (const sib of el.parentElement.children) {
+      if (sib !== el && sib instanceof HTMLElement && !(sib instanceof HTMLScriptElement) && !sib.inert) {
+        behind.push(sib);
+      }
+    }
+  }
   root.classList.add('locked');
   behind.forEach((el) => { el.inert = true; });
 

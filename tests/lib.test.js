@@ -112,3 +112,10 @@ test('collapsePin: content offset collapses the pinned stretch', async () => {
   assert.equal(collapsePin(5408, 2776, 2532), 2876);
   assert.equal(collapsePin(500, 2776, 0), 500);
 });
+
+test('the shipped .ics file matches buildIcs(EVENT) (run npm run build:ics after editing EVENT)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const shipped = readFileSync(new URL('../assets/karan-swathi-engagement.ics', import.meta.url), 'utf8');
+  const noStamp = (s) => s.replace(/DTSTAMP:\d{8}T\d{6}Z/, 'DTSTAMP:');
+  assert.equal(noStamp(shipped), noStamp(buildIcs(EVENT)));
+});

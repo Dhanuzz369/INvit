@@ -326,6 +326,11 @@ export function initProposal() {
   let owned = false;
   let lastScene = -1;
   let lastRings = '';
+  // the per frame loop's state (see wake() below)
+  let near = true;
+  let running = false;
+  let lastV = NaN;
+  let lastScroll = NaN;
 
   // Layout reads: the couple stage relative to #proposal's top (which sits at
   // the viewport top for the whole pin), and the journey's arrival pose.
@@ -480,14 +485,50 @@ export function initProposal() {
       geo = measure();
       lastScene = -1;
       lastRings = '';
+      wake();
     },
+    // the scroll crossed into, through or past the pin (also a jump from the
+    // venue straight to the top): wake the loop so the hand-back happens
+    onUpdate: () => wake(),
+    onToggle: () => wake(),
   });
   handOffRings(true);
 
-  // One per frame check, after GSAP and ScrollTrigger have updated: the scene
-  // follows the shared clock; the rings are ours when ringOwner() says so.
+  // The loop runs only while the scene can be seen. An IntersectionObserver
+  // says when any of #proposal is on screen (its edges are empty sky and
+  // floor, so the observer's one frame of lag never shows); the
+  // pin trigger's callbacks above wake it whenever the scroll crosses the pin.
+  // Away from the screen it keeps going only until the lagged clock and the
+  // scroll have settled (so a hand-back to the journey, and the rings' last
+  // move off screen, still happen), then leaves the ticker: no per frame
+  // work, shimmer included, at the venue or above. No layout reads per frame.
+  function wake() {
+    if (running) return;
+    running = true;
+    gsap.ticker.add(tick);
+  }
+  new IntersectionObserver(
+    (entries) => {
+      near = entries[entries.length - 1].isIntersecting;
+      if (near) wake();
+    }
+  ).observe(section);
+
   function tick(time) {
-    if (!geo) return;
+    if (geo) frame(time);
+    const v = getVirtualScroll();
+    const scroll = trigger.scroll();
+    if (!near && v === lastV && scroll === lastScroll) {
+      running = false;
+      gsap.ticker.remove(tick);
+    }
+    lastV = v;
+    lastScroll = scroll;
+  }
+
+  // One frame, after GSAP and ScrollTrigger have updated: the scene follows
+  // the shared clock; the rings are ours when ringOwner() says so.
+  function frame(time) {
     const end = getJourneyEnd();
     const v = getVirtualScroll();
     const p = segmentT(v, end, end + trigger.end - trigger.start);
@@ -501,6 +542,6 @@ export function initProposal() {
     const dy = trigger.start - collapsePin(trigger.scroll(), trigger.start, trigger.end - trigger.start);
     renderRings(p, dy, time);
   }
-  gsap.ticker.add(tick);
+  wake();
   ST.refresh();
 }

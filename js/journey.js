@@ -64,17 +64,19 @@ export function getJourneyEnd() {
   return geo ? geo.end : null;
 }
 
-// Task 7 calls handOffRings() once its own scroll scene owns the rings past
-// "hands". From then on, whenever the raw scroll is at or past
-// getJourneyEnd(), the journey writes nothing to #ring-rose, #ring-gold or
-// #ring-link (in both the animated and the reduced motion branch). Above it
-// the journey draws as usual, clamped to that end, and takes the rings back
-// as soon as the guest scrolls back up.
+// js/proposal.js calls handOffRings(true) once, when its pinned scene is set
+// up (animated branch only; under reduced motion there is no hand-off and the
+// journey draws the hands rest itself, see setHandsRest). From then on the
+// journey writes nothing to #ring-rose, #ring-gold or #ring-link while the
+// proposal owns the rings, and draws as usual (clamped to the "hands" pose)
+// otherwise, taking them back as soon as the guest scrolls back up.
 //
-// With a pin length registered (setPinLength), the master timeline is ONE
-// lagged clock for both scenes: it runs on through the pin, and ownership is
-// ringOwner(getVirtualScroll(), getJourneyEnd()) instead of the raw scroll, so
-// a fast flick hands over at the same lagged moment in both directions.
+// Who owns them: with a pin length registered (setPinLength, the normal
+// case) the master timeline is ONE lagged clock for both scenes, running on
+// through the pin, and the owner is ringOwner(getVirtualScroll(),
+// getJourneyEnd()), so a fast flick hands over at the same lagged moment in
+// both directions. Without a pin length it falls back to the raw scroll
+// being at or past getJourneyEnd().
 export function handOffRings(on = true) {
   handedOff = on;
 }
