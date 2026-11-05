@@ -1,5 +1,5 @@
 import { initEnvelope } from './envelope.js';
-import { initRings, dropRings } from './rings.js';
+import { initRings, dropRings, refreshIfMoved } from './rings.js';
 import { initJourney } from './journey.js';
 import { prepareProposal, initProposal, stopProposal } from './proposal.js';
 
@@ -7,6 +7,7 @@ import { prepareProposal, initProposal, stopProposal } from './proposal.js';
 // (written from js/lib.js by `npm run build:ics`), so they work without JS.
 
 const root = document.documentElement;
+
 
 // Motion only when GSAP and its plugins loaded, and only if the early
 // envelope layer (js-pending, set in <head>) has not already given up on us
@@ -22,51 +23,82 @@ if (gsap && ScrollTrigger && MotionPathPlugin && !expired) {
 }
 root.classList.remove('js-pending');
 
-// Simple reveals: rise 32px + fade, once (styles in css/styles.css).
-// The hero's own reveals are sequenced with the ring drop in js/rings.js.
+// Reveals: each part of a section rises 24px and fades in, once, as it
+// enters (styles in css/styles.css). The hero's own reveals are sequenced with
+// the ring drop in js/rings.js. The back of the card waits under the page
+// (the curtain footer), so it is always "in view": its parts come in when the
+// end of the page itself arrives.
+const STAGGER = 0.08; // s between parts arriving together
 function initReveals() {
-  const items = document.querySelectorAll('.reveal:not(#hero .reveal)');
+  const items = [...document.querySelectorAll('.reveal:not(#hero .reveal):not(.closing .reveal)')];
+  const closingItems = [...document.querySelectorAll('.closing .reveal')];
+  const show = (list) =>
+    list
+      .filter((el) => !el.classList.contains('is-in'))
+      .forEach((el, i) => {
+        el.style.transitionDelay = i ? `${i * STAGGER}s` : '';
+        el.classList.add('is-in');
+      });
   if (!('IntersectionObserver' in window)) {
-    items.forEach((el) => el.classList.add('is-in'));
+    show([...items, ...closingItems]);
     return;
   }
   const io = new IntersectionObserver(
     (entries) => {
-      // Items arriving together (the detail rows, a fast scroll) come in one
-      // by one, 0.12s apart, in document order.
-      entries
-        .filter((entry) => entry.isIntersecting)
-        .forEach((entry, i) => {
-          entry.target.style.transitionDelay = i ? `${i * 0.12}s` : '';
-          entry.target.classList.add('is-in');
-          io.unobserve(entry.target);
-        });
+      // Parts arriving together (the programme rows, a fast scroll) come in
+      // one by one, in document order.
+      const arriving = entries.filter((entry) => entry.isIntersecting).map((entry) => entry.target);
+      arriving.forEach((el) => io.unobserve(el));
+      show(arriving);
     },
     { rootMargin: '0px 0px -10% 0px' }
   );
   items.forEach((el) => io.observe(el));
 
-  // The last lines sit too close to the bottom of the page to ever pass the
-  // 10% margin above. A zero height marker after them says the page end is
-  // in view: then everything still waiting comes in, one by one.
-  const closing = document.querySelector('.closing');
-  if (!closing) return;
-  const marker = document.createElement('span');
-  marker.className = 'reveal-end';
-  marker.setAttribute('aria-hidden', 'true');
-  closing.appendChild(marker);
-  const atEnd = new IntersectionObserver((entries) => {
-    if (!entries.some((entry) => entry.isIntersecting)) return;
-    atEnd.disconnect();
-    [...items]
-      .filter((el) => !el.classList.contains('is-in'))
-      .forEach((el, i) => {
-        el.style.transitionDelay = i ? `${i * 0.12}s` : '';
-        el.classList.add('is-in');
-        io.unobserve(el);
-      });
-  });
-  atEnd.observe(marker);
+  // Where the back of the card is a curtain (the same query as in the
+  // stylesheet) it lies under the page from the start, so it is "in view" all
+  // along: its parts come in only once the page has slid almost all the way
+  // off it (a marker after it, at the very end of the document). Elsewhere it
+  // is ordinary page and its parts come in like any other.
+  const curtain = window.matchMedia('(min-height: 40rem) and (min-width: 48rem)').matches;
+  if (!curtain) closingItems.forEach((el) => io.observe(el));
+
+  const marker = (parent) => {
+    const m = document.createElement('span');
+    m.className = 'reveal-end';
+    m.setAttribute('aria-hidden', 'true');
+    parent.appendChild(m);
+    return m;
+  };
+  // The end of the page content in view: the last lines (too close to the
+  // bottom to pass the 10% margin above) come in, one after another.
+  const main = document.querySelector('main');
+  if (main) {
+    const atEnd = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      atEnd.disconnect();
+      items.forEach((el) => io.unobserve(el));
+      show(items);
+    });
+    atEnd.observe(marker(main));
+  }
+  if (curtain && closingItems.length) {
+    const atBottom = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        atBottom.disconnect();
+        show(closingItems);
+      },
+      { rootMargin: '0px 0px 12% 0px' }
+    );
+    atBottom.observe(marker(document.body));
+  }
+}
+
+// Opening or closing a programme row moves everything below it, the proposal
+// pin included: re-measure the ring journey once it has settled.
+function watchRows() {
+  document.querySelectorAll('#details details').forEach((row) => row.addEventListener('toggle', refreshIfMoved));
 }
 
 // If the motion layer throws, drop back to the static page: every detail
@@ -80,7 +112,7 @@ function fallBack(err) {
     gsap.globalTimeline.getChildren(true, true, true).forEach((t) => t.kill());
     const touched = document.querySelectorAll(
       '#hero-names > span, #tagline .w, .reveal, #ring-stage .ring, #ring-stage .ring > *,' +
-        ' #couple-svg g[id], #proposal-yes, #envelope *'
+        ' #couple-svg g[id], #proposal-yes, .proposal__ask, #envelope *'
     );
     // only what GSAP actually touched (el._gsap), so untouched SVG keeps its markup
     const cleared = [...touched].filter((el) => el._gsap);
@@ -107,6 +139,7 @@ function fallBack(err) {
       initJourney();
       initProposal(); // after the journey: the pin starts where the journey ends
       initReveals();
+      watchRows();
     }
   } catch (err) {
     if (animated) fallBack(err);

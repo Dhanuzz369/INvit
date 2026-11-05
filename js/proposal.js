@@ -283,6 +283,19 @@ function heartVars(h, u) {
   };
 }
 
+// --- The three beats ------------------------------------------------------------
+
+// Which beat is playing at progress p: "One knee" while he kneels, "The ring"
+// from her reach to the ring on her finger, "The yes" once the title swaps.
+export function beatAt(p) {
+  if (p < B.reach[0]) return 0;
+  return p < B.yes[0] ? 1 : 2;
+}
+
+function showBeat(list, i) {
+  list.forEach((el, j) => el.classList.toggle('is-on', j === i));
+}
+
 // --- The scene ---------------------------------------------------------------
 
 // Stops the scene for good (js/main.js calls it when the motion layer falls
@@ -294,6 +307,7 @@ export function stopProposal() {
   stopScene = null;
   const stage = document.getElementById('couple-stage');
   if (stage?.dataset.labelStatic) stage.setAttribute('aria-label', stage.dataset.labelStatic);
+  showBeat([...document.querySelectorAll('#proposal .beat')], 0); // the static couple: before the knee
 }
 
 export function initProposal() {
@@ -308,6 +322,10 @@ export function initProposal() {
   // through never scrubs the pin, so hiding it would mean never hearing it.
   // It follows #couple-stage in the DOM, so it is read after the image.
   const yes = $('proposal-yes');
+  // The question it answers shares its place and gives way to it.
+  const ask = section?.querySelector('.proposal__ask');
+  // The three beats beside the plate: the one playing is in full ink.
+  const beats = [...(section?.querySelectorAll('.beat') || [])];
   if (!gsap || !ST || !section || !stage || !apply) return;
 
   // The scene can play (or, under reduced motion, its finale shows): say so.
@@ -326,6 +344,8 @@ export function initProposal() {
     apply(groomPose(1, 1));
     apply(brideArm(0, 1));
     gsap.set([blush, yes], { opacity: 1 });
+    if (ask) gsap.set(ask, { opacity: 0 });
+    showBeat(beats, beats.length - 1);
     fx.petals.forEach((pt) => pt.set(petalVars(pt, 1)));
     return;
   }
@@ -341,6 +361,8 @@ export function initProposal() {
   const setSpark = ringSetter(spark);
   const setBlush = gsap.quickSetter(blush, 'opacity');
   const setYes = gsap.quickSetter(yes, 'css');
+  const setAsk = ask ? gsap.quickSetter(ask, 'css') : () => {};
+  let beat = 0;
 
   let geo = null;
   let owned = false;
@@ -386,6 +408,9 @@ export function initProposal() {
     setBlush(ease(B.blush, p, EASE_OUT));
     const said = ease(B.yes, p, EASE_OUT); // rise 32px + fade, scrubbed
     setYes({ opacity: said, y: 32 * (1 - said) });
+    setAsk({ opacity: 1 - said, y: -16 * said }); // the question steps up and away
+    const now = beatAt(p);
+    if (now !== beat) showBeat(beats, (beat = now));
     for (const pt of fx.petals) {
       const u = segmentT(p, pt.start, pt.start + PETAL_LIFE);
       if (u === pt.last) continue;

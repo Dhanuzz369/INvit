@@ -28,8 +28,10 @@ export function initEnvelope() {
     return Promise.resolve();
   }
 
-  // Reduced motion: no envelope moment, show the card directly.
-  if (reduced) {
+  // Reduced motion, or a link straight to one part of the invitation
+  // (…/#venue, see the inline head script): no envelope moment, show the
+  // card directly.
+  if (reduced || root.hasAttribute('data-skip-envelope')) {
     section.hidden = true;
     return Promise.resolve();
   }
@@ -56,7 +58,7 @@ export function initEnvelope() {
       }
     }
   }
-  const unlock = () => {
+  const releaseScroll = () => {
     root.classList.remove('locked');
     behind.forEach((el) => { el.inert = false; });
   };
@@ -68,13 +70,13 @@ export function initEnvelope() {
     let settled = false;
 
     // Anything going wrong while opening must never leave the page locked:
-    // unlock, put the envelope away and reject, so js/main.js falls back to
+    // release the scroll, put the envelope away and reject, so js/main.js falls back to
     // the static page.
     const fail = (err) => {
       if (settled) return;
       settled = true;
       try {
-        unlock();
+        releaseScroll();
         section.hidden = true;
       } finally {
         reject(err);
@@ -108,7 +110,7 @@ export function initEnvelope() {
         if (settled) return;
         try {
           window.scrollTo(0, 0);
-          unlock();
+          releaseScroll();
           // Keep keyboard users in place: focus moves to the names, not the top of the body.
           const names = document.getElementById('hero-names');
           if (names) {

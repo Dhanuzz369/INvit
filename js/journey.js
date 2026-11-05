@@ -39,9 +39,10 @@ const TEXT_FEATHER = 28; // px of clear space over which they ease back
 const TRANSIT_EDGE = 0.12; // first/last share of a transit over which the fade may start/stop
 // Text the rings would otherwise cover in transit
 const TEXT_BLOCKS = [
-  '#hero .label', '#hero-names', '.hero__engaged', '.hero__date', '#tagline',
-  '#about .label', '#about .script-title', '.story p',
-  '.card__title', '#details-card .detail-row', '#add-calendar',
+  '.invite__together', '#hero-names', '.invite__engaged', '.invite__when', '.invite__where',
+  '.invite__dear', '#tagline',
+  '#about .title', '.story p', '.fact',
+  '.programme__word', '#details-card .detail-row',
 ].join(',');
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
