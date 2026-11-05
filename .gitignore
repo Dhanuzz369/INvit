@@ -1,3 +1,5 @@
 .superpowers/
 node_modules/
 .DS_Store
+.taste-skill/inspect/
+.taste-skill/shots/
