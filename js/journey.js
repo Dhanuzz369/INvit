@@ -42,15 +42,30 @@ export function getJourneyTimeline() {
 }
 
 // Document coordinate poses of the linked pair at #ring-anchor-hands:
-// { rose: {x, y, rotation}, gold: {...} }. Subtract scrollY for stage coords.
+// { rose: {x, y, rotation}, gold: {...} }. Stage y = doc y - scroll while the
+// page scrolls normally; while #proposal is pinned that is doc y - journeyEnd.
 export function getHandsPose() {
   return geo ? pairPose(geo.hands.x, geo.hands.y, 0, LINK) : null;
 }
 
+// The same poses in stage (viewport) coordinates at the "hands" label, i.e.
+// with #proposal's top at the viewport top. This stays correct for the whole
+// time #proposal is pinned there.
+export function getHandsStagePose() {
+  return geo ? pairPose(geo.hands.x, geo.hands.y - geo.end, 0, LINK) : null;
+}
+
+// Scroll position (px) of the "hands" label: #proposal's top at the viewport top.
+export function getJourneyEnd() {
+  return geo ? geo.end : null;
+}
+
 // Task 7 calls handOffRings() once its own scroll scene owns the rings past
-// "hands". From then on the journey stops writing #ring-rose, #ring-gold and
-// #ring-link while the timeline sits at the "hands" label (progress 1), and
-// takes them back as soon as the guest scrolls back above it.
+// "hands". From then on, whenever the raw scroll is at or past
+// getJourneyEnd(), the journey writes nothing to #ring-rose, #ring-gold or
+// #ring-link (in both the animated and the reduced motion branch). Above it
+// the journey draws as usual, clamped to that end, and takes the rings back
+// as soon as the guest scrolls back up.
 export function handOffRings(on = true) {
   handedOff = on;
 }
@@ -68,7 +83,7 @@ function measure() {
   const vw = document.documentElement.clientWidth;
   const vh = window.innerHeight;
   const about = docBox($('ring-anchor-about'));
-  const card = docBox($('ring-anchor-details').nextElementSibling);
+  const card = docBox($('details-card'));
   const hands = docBox($('ring-anchor-hands'));
   const end = Math.max(docBox($('proposal')).top, 1);
 
@@ -85,8 +100,7 @@ function measure() {
     return [from, { x: from.x + side * amp, y: from.y + 0.35 * dy }, { x: to.x + side * amp, y: to.y }, to];
   };
 
-  // B: an S from About to the card, leaving and landing towards the right
-  // (so the clockwise roll reads as rolling forward)
+  // B: an S from About to the card, swinging right, back left, then landing
   const dyB = rest.y - meet.y;
   const mid = { x: (meet.x + rest.x) / 2, y: (meet.y + rest.y) / 2 };
   const pathB = window.MotionPathPlugin.getRawPath(
@@ -95,9 +109,12 @@ function measure() {
       `C${mid.x - k},${mid.y + 0.15 * dyB} ${rest.x - k},${rest.y - 0.15 * dyB} ${rest.x},${rest.y}`
   );
   window.MotionPathPlugin.cacheRawPathMeasurements(pathB);
-  // Roll by distance / circumference, rounded to whole turns so the stone
-  // lands upright (under half a turn off over several turns)
-  const turns = Math.max(1, Math.round(rollRotation(pathB.totalLength, RING_RADIUS) / 360));
+  // Rolling without skidding: the pair turns by the horizontal distance it
+  // has travelled (clockwise moving right, back moving left). The landing
+  // spot's turn is rounded to whole turns and the difference spread over the
+  // roll, so the stone always lands upright.
+  const rollEnd = rollRotation(rest.x - meet.x, RING_RADIUS);
+  const rollFix = Math.round(rollEnd / 360) * 360 - rollEnd;
 
   // C: a gentle glide from the card down to the hands
   const dyC = hands.cy - rest.y;
@@ -115,10 +132,22 @@ function measure() {
   const sC0 = Math.max(sB1, end - GLIDE_SCROLL * vh);
 
   return {
-    end, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, turns, pathB,
+    end, meet, rest, hands: { x: hands.x, y: hands.cy }, hero, rollFix, pathB,
     roseA: curveA(-1, hero.rose), goldA: curveA(1, hero.gold), curveC,
     sA, sB0, sB1, sC0,
   };
+}
+
+// The sparkle swells and fades over a short scroll window around the meeting
+// (the rings touch about 20px of scroll before sA), long enough for a slow
+// scroller to see it.
+const SPARK_BEFORE = 70;
+const SPARK_AFTER = 40;
+function sparkAt(v) {
+  const g = geo;
+  const from = Math.max(g.sA - SPARK_BEFORE, 0);
+  const to = g.sA + SPARK_AFTER;
+  return v > from && v < to ? Math.sin(Math.PI * segmentT(v, from, to)) : 0;
 }
 
 // Poses in document coordinates for virtual scroll v.
@@ -131,19 +160,16 @@ function poseAt(v) {
     const gold = bezierPoint(...g.goldA, t);
     rose.rotation = g.hero.rose.rotation * (1 - turn);
     gold.rotation = g.hero.gold.rotation * (1 - turn);
-    // Linked once the bands overlap. The sparkle swells from the moment the
-    // rings touch and has faded by the time they settle into place.
-    const gap = gold.x - rose.x;
-    const linked = gap < 2 * RING_RADIUS - 4;
-    const touch = 2 * RING_RADIUS + 6;
-    const s = Math.sin(Math.PI * segmentT(touch - gap, 0, touch - 2 * LINK));
-    return { rose, gold, link: linked ? 1 : 0, spark: s };
+    // Linked once the bands overlap
+    const linked = gold.x - rose.x < 2 * RING_RADIUS - 4;
+    return { rose, gold, link: linked ? 1 : 0, spark: sparkAt(v) };
   }
-  if (v < g.sB0) return { ...pairPose(g.meet.x, g.meet.y, 0, LINK), link: 1, spark: 0 };
+  if (v < g.sB0) return { ...pairPose(g.meet.x, g.meet.y, 0, LINK), link: 1, spark: sparkAt(v) };
   if (v < g.sB1) {
     const t = segmentT(v, g.sB0, g.sB1);
     const p = window.MotionPathPlugin.getPositionOnPath(g.pathB, t);
-    return { ...pairPose(p.x, p.y, g.turns * 360 * t, LINK), link: 1, spark: 0 };
+    const turn = rollRotation(p.x - g.meet.x, RING_RADIUS) + g.rollFix * t;
+    return { ...pairPose(p.x, p.y, turn, LINK), link: 1, spark: sparkAt(v) };
   }
   if (v < g.sC0) return { ...pairPose(g.rest.x, g.rest.y, 0, LINK), link: 1, spark: 0 };
   const t = segmentT(v, g.sC0, g.end);
@@ -216,7 +242,10 @@ export function initJourney() {
 
   function render(force) {
     if (!geo || !trigger) return;
-    const scroll = trigger.scroll();
+    const raw = trigger.scroll();
+    // Past "hands" Task 7 owns the rings once handed off: never fight it.
+    if (handedOff && raw >= geo.end) return;
+    const scroll = handedOff ? Math.min(raw, geo.end) : raw;
     const v = state.p * geo.end;
     const key = `${v.toFixed(2)}|${scroll}`;
     if (!force && key === last) return;
@@ -229,7 +258,6 @@ export function initJourney() {
       if (!placed) return;
       pose = restPose(placed);
     } else {
-      if (handedOff && state.p >= 1) return;
       pose = poseAt(v);
     }
 
@@ -275,7 +303,7 @@ export function initJourney() {
       onUpdate: () => render(),
     },
   });
-  timeline.addLabel('start', 0).to(state, { p: 1, duration: 1 }).addLabel('hands', 1);
+  timeline.addLabel('start', 0).fromTo(state, { p: 0 }, { p: 1, duration: 1 }).addLabel('hands', 1);
   trigger = timeline.scrollTrigger;
 
   // Past "hands" the master trigger stops updating; keep the rings riding
