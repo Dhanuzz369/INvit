@@ -42,6 +42,9 @@
 *::after { box-sizing: border-box; }
 
 html {
+  /* Reserve the scrollbar's space so unlocking scroll after the envelope
+     doesn't reflow the hero (and move the ring anchor). */
+  scrollbar-gutter: stable;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
@@ -165,7 +168,11 @@ a { color: inherit; }
   pointer-events: none;
   z-index: 20;
   overflow: visible;
+  display: none; /* rings only exist once the motion layer runs (html.js-anim) */
 }
+html.js-anim #ring-stage { display: block; }
+/* Hidden until placed by js/rings.js */
+html.js-anim #ring-stage .ring { opacity: 0; }
 
 .ring-anchor {
   position: relative;
@@ -660,4 +667,5 @@ html.js-anim .envelope { cursor: pointer; }
   .btn { transition: none; }
   html.js-anim .reveal { transform: none; }
   html.js-anim .reveal.is-in { transition: opacity 700ms var(--ease-out); }
+  html.js-anim #tagline .w { opacity: 1; }
 }

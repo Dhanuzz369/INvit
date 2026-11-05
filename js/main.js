@@ -1,5 +1,6 @@
 import { EVENT, buildIcs } from './lib.js';
 import { initEnvelope } from './envelope.js';
+import { initRings, dropRings } from './rings.js';
 
 // Calendar links: an .ics file generated in the page from confirmed facts only.
 const icsHref = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(buildIcs(EVENT));
@@ -15,8 +16,9 @@ if (gsap) {
 }
 
 // Simple reveals: rise 32px + fade, once (styles in css/styles.css).
+// The hero's own reveals are sequenced with the ring drop in js/rings.js.
 function initReveals() {
-  const items = document.querySelectorAll('.reveal');
+  const items = document.querySelectorAll('.reveal:not(#hero .reveal)');
   if (!('IntersectionObserver' in window)) {
     items.forEach((el) => el.classList.add('is-in'));
     return;
@@ -34,5 +36,10 @@ function initReveals() {
   items.forEach((el) => io.observe(el));
 }
 
+const animated = document.documentElement.classList.contains('js-anim');
+if (animated) initRings();
 await initEnvelope();
-if (document.documentElement.classList.contains('js-anim')) initReveals();
+if (animated) {
+  dropRings();
+  initReveals();
+}
