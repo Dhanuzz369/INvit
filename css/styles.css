@@ -377,7 +377,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 /* ---------- 7.2 Hero ---------- */
 .section--hero {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh; /* small viewport: the address bar showing or hiding never moves the ring anchors */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -543,7 +543,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 /* ---------- 7.5 Proposal stage ---------- */
 .section--proposal {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh; /* small viewport: the address bar showing or hiding never moves the ring anchors */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -553,7 +553,8 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 
 .couple-stage {
   position: relative;
-  width: min(100%, 26rem, calc(70dvh * 4 / 5));
+  width: min(100%, 26rem, calc(70vh * 4 / 5));
+  width: min(100%, 26rem, calc(70svh * 4 / 5));
   aspect-ratio: 4 / 5;
 }
 

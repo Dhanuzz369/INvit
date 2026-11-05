@@ -33,11 +33,32 @@ export function anchorCenter(el) {
   return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
 }
 
+// Where the hero anchor sits in the document; a change means ring poses are stale.
+const anchorKey = () => {
+  const a = document.getElementById('ring-anchor-hero').getBoundingClientRect();
+  return `${a.left.toFixed(1)},${(a.top + window.scrollY).toFixed(1)}`;
+};
+let measuredKey = '';
+let refreshTimer = 0;
+
+// ScrollTrigger re-measures on width changes by itself, but ignores
+// height-only resizes on touch devices and font swaps. Refresh (debounced)
+// only when the anchor has actually moved since the last measurement, so the
+// address bar showing or hiding (svh layout: anchors don't move) costs nothing.
+function refreshIfMoved() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => {
+    if (measuredKey && anchorKey() !== measuredKey) window.ScrollTrigger?.refresh();
+  }, 200);
+}
+
 // Keep 1 stage unit = 1 CSS px as the viewport changes (rotation, URL bar).
 function syncStage() {
   const svg = stage();
   const r = svg.getBoundingClientRect();
-  svg.setAttribute('viewBox', `0 0 ${Math.round(r.width)} ${Math.round(r.height)}`);
+  if (!r.width || !r.height) return;
+  svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+  refreshIfMoved();
 }
 
 // Where a ring rests in the hero, in DOCUMENT coordinates (as if scrolled to
@@ -64,37 +85,55 @@ export function initRings() {
   gsap.set([rose, gold, rose.firstElementChild, gold.firstElementChild], { svgOrigin: '0 0' });
   // Names wait for the rings.
   gsap.set('#hero-names > span', { opacity: 0 });
-
-  // Late font swap moves the hero; let ScrollTrigger re-measure the anchors.
-  document.fonts?.ready.then(() => window.ScrollTrigger?.refresh());
 }
 
 // Places the rings at the hero anchor and keeps them there as the hero scrolls
-// away (the stage is fixed, so y has to follow the page). Scrubbed 1:1 with
-// scroll from 0 to the bottom of the hero; re-measured on refresh.
-// Task 5 replaces this with the full journey: kill the returned timeline and
-// drive the same outer groups from heroPose() onwards.
+// away (the stage is fixed, so y has to follow the page): y = pose.y - scroll,
+// 1:1 from scroll 0 to the bottom of the hero. Poses are re-measured on every
+// ScrollTrigger refresh. (A scrubbed fromTo with function values and
+// invalidateOnRefresh did not re-measure: the timeline is not re-rendered when
+// its progress is unchanged, so this sets the values directly.)
+// Task 5 replaces this with the full journey: kill() the returned
+// ScrollTrigger and drive the same outer groups from heroPose() onwards.
 export function followHero() {
   const gsap = window.gsap;
+  const ST = window.ScrollTrigger;
   const hero = document.getElementById('hero');
+  const els = rings();
   const end = () => hero.offsetTop + hero.offsetHeight;
-  const tl = gsap.timeline({
-    scrollTrigger: { start: 0, end, scrub: true, invalidateOnRefresh: true },
+  let poses = {};
+
+  const measure = () => {
+    for (const which of Object.keys(els)) poses[which] = heroPose(which);
+    measuredKey = anchorKey();
+  };
+  const place = (scroll) => {
+    const travel = Math.min(Math.max(scroll, 0), end());
+    for (const [which, el] of Object.entries(els)) {
+      const p = poses[which];
+      gsap.set(el, { x: p.x, y: p.y - travel, rotation: p.rotation });
+    }
+  };
+
+  measure();
+  place(window.scrollY);
+  const trigger = ST.create({
+    start: 0,
+    end,
+    onRefresh: (self) => { measure(); place(self.scroll()); },
+    onUpdate: (self) => place(self.scroll()),
   });
-  for (const [which, el] of Object.entries(rings())) {
-    const pose = () => heroPose(which);
-    tl.fromTo(
-      el,
-      { x: () => pose().x, y: () => pose().y, rotation: () => pose().rotation },
-      { x: () => pose().x, y: () => pose().y - end(), rotation: () => pose().rotation, ease: 'none' },
-      0
-    );
-  }
-  return tl;
+
+  // Late font swaps move the hero without a resize.
+  document.fonts?.ready.then(refreshIfMoved);
+  document.fonts?.addEventListener?.('loadingdone', refreshIfMoved);
+  return trigger;
 }
 
-// Tagline (spec 7.6): each word goes from 30% to full opacity as the line
-// crosses 70% of the viewport, scrubbed so it follows the guest's scroll.
+// Tagline (spec 7.6): each word goes from 30% to full opacity as it crosses
+// 70% of the viewport, scrubbed so it follows the guest's scroll. One
+// ScrollTrigger per word: a line's height of scroll is shared between its
+// words in reading order, so line two starts as line one finishes.
 export function revealTagline() {
   const gsap = window.gsap;
   const words = gsap.utils.toArray('#tagline .w');
@@ -103,16 +142,29 @@ export function revealTagline() {
     gsap.set(words, { opacity: 1 });
     return;
   }
-  gsap.fromTo(
-    words,
-    { opacity: 0.3 },
-    {
-      opacity: 1,
-      ease: 'none',
-      stagger: 0.5,
-      scrollTrigger: { trigger: '#tagline', start: 'top 70%', end: 'bottom 45%', scrub: true },
-    }
-  );
+  // This word's slice of its line, in px of scroll: [offset, offset + step]
+  const slice = (w) => {
+    const line = words.filter((o) => Math.abs(o.offsetTop - w.offsetTop) < 4);
+    const step = w.offsetHeight / line.length;
+    return { from: line.indexOf(w) * step, to: (line.indexOf(w) + 1) * step };
+  };
+  words.forEach((w) => {
+    gsap.fromTo(
+      w,
+      { opacity: 0.3 },
+      {
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: w,
+          start: () => `top+=${slice(w).from} 70%`,
+          end: () => `top+=${slice(w).to} 70%`,
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      }
+    );
+  });
 }
 
 // The hero entrance: rings fall in and land with a soft bounce, the names
