@@ -238,3 +238,32 @@ export function textProximity(x, y, r, rects, feather) {
   const u = 1 - segmentT(gap, 0, feather);
   return u * u * (3 - 2 * u);
 }
+
+// --- The portrait: a point of the picture on screen -------------------------
+
+// Where a point of a picture lands on screen. The picture (natural size
+// { width, height } in its own px) fills `box` ({ left, top, width, height },
+// screen px, untransformed) with object-fit: cover at object-position `pos`
+// (fractions, { x, y }), and is then scaled by zoom.scale about zoom.origin
+// (px from the box's top left: its transform-origin). Returns the screen
+// point and `scale`, screen px per picture px.
+export function coverPoint(pt, natural, box, pos = { x: 0.5, y: 0.5 }, zoom = { scale: 1, origin: { x: 0, y: 0 } }) {
+  const s = Math.max(box.width / natural.width, box.height / natural.height);
+  const ox = (box.width - natural.width * s) * pos.x;
+  const oy = (box.height - natural.height * s) * pos.y;
+  const k = zoom.scale;
+  const o = zoom.origin;
+  return {
+    x: box.left + o.x + (ox + pt.x * s - o.x) * k,
+    y: box.top + o.y + (oy + pt.y * s - o.y) * k,
+    scale: s * k,
+  };
+}
+
+// A computed object-position ('50% 85%', 'left top') as fractions { x, y }.
+const KEYWORD = { left: 0, top: 0, center: 0.5, right: 1, bottom: 1 };
+export function objectPositionFractions(value) {
+  const [a = 'center', b = 'center'] = String(value || '').trim().split(/\s+/).filter(Boolean);
+  const f = (v) => (v in KEYWORD ? KEYWORD[v] : /%$/.test(v) ? parseFloat(v) / 100 : 0.5);
+  return { x: f(a), y: f(b) };
+}
