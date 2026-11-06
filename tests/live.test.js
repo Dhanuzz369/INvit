@@ -118,7 +118,7 @@ test('every sample item awaiting the couple is marked in the markup', () => {
 
 // --- the proposal beats ---------------------------------------------------------------
 
-test('beatAt: one knee, then the ring, then the yes', () => {
+test('beatAt: the roses, then the ring, then the yes', () => {
   assert.equal(beatAt(0), 0);
   assert.equal(beatAt(0.2), 0); // the rings arrive and part
   assert.equal(beatAt(0.35), 1); // hers glides onto her finger

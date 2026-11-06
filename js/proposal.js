@@ -176,7 +176,7 @@ function petalVars(pt, u, w, h) {
 
 // --- The three beats ----------------------------------------------------------
 
-// Which beat is playing at progress p: "One knee" while the question hangs,
+// Which beat is playing at progress p: "The roses" while the question hangs,
 // "The ring" from the glide onto her finger, "The yes" once the title swaps.
 export function beatAt(p) {
   if (p < B.travel[0]) return 0;
