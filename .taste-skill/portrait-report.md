@@ -73,3 +73,46 @@ screen = box.left/top + p',   scale = s · k          // screen px per picture p
 - Real phones have a shorter `svh` than headless 844px; the 390 × 664 run shows the 3:4 crop (top of Karan's hair trimmed first, ring hand intact).
 - `assets/og.jpg` does not show the portrait; the couple may want the portrait in the share preview.
 - Not deployed.
+
+---
+
+## v3, 6 November 2026: the client's change list (phone first)
+
+Most guests will open it from a WhatsApp link, so this pass was designed and checked at 360 × 740, 390 × 844 and 430 × 932 first, then at 1440 × 900. Commits: `730c858` (the bride's name), `7f188fc` (content and phone pass), `34034a5` (portrait fit and rose burst).
+
+| # | Request | Done |
+| --- | --- | --- |
+| 1 | Swathi → **Soumya** | Title, meta/OG/Twitter, envelope, hero h1, alt text, aria-labels, the scene, footer sign-off, WhatsApp text (static links + `shareMessage`), host tool (uses `shareMessage`), calendar (`npm run build:ics` → `assets/karan-soumya-engagement.ics`, SUMMARY/PRODID renamed; the **UID is kept** so a calendar that already imported the event updates it instead of adding a second one), portrait files renamed `karan-soumya-portrait.*`, tests. **Share preview `assets/og.jpg` regenerated** (it showed "Swathi"). Monogram stays "K & S". |
+| 2 | Remove coffee, lamps clip, mallige | Removed from the page; `assets/found/` deleted entirely. |
+| 3 | Remove "How it began" + story | Gone. The section is now a compact "day at a glance" on paper: `#ring-anchor-about` centred above the facts row (2 × 2 on a phone, one row on wider screens). The rings still link there; the journey's text-fade list was updated. "Our story" left both menus. |
+| 4 | Remove "Will you, Swathi?" | Gone. The heading is only "She said yes", invisible (place kept, so nothing shifts) until the ring lands, then it rises in. Without motion it simply shows; the beats show "The yes". |
+| 5 | Whole portrait, both heads | The frame is always exactly 2:3 with `object-fit: contain`; on phones it is as wide as the screen allows, or as tall as the space under the text allows (`--pic-w = min(avail width, (100svh − text reserve − mat) × 2/3)`), never cropped. The push-in is now 4% about 54% 28%, so the tops of both heads and the ring hand stay inside the frame (unit test + measured in the browser at every pin step, all sizes: `headsInside` true). `fitPoint()` (lib.js) handles contain and cover; the scene reads the img's computed `object-fit`. |
+| 6 | Full-screen rose burst | `js/burst.js`: 48 rose petals (three reds, flat, notched petal shape with a deeper base) + 12 jasmine. Half burst from her hand up and out across the whole screen, half fall from above across the full width, all flutter, turn and clear in ~5 s. Time based (closed-form paths, no integration), transform/opacity only, one fixed `contain: strict` layer shown only while it plays. Fires once per forward crossing of the landing (re-armed below 0.36), never when a jump lands past the scene; none under reduced motion. Petals on screen at peak ≈ 44 of 60 at 390 × 844; frame times 16.7 ms median / 16.8 ms p95 at 360, 390, 430 and 1440 wide. |
+| 7 | Remove credits + stamps | Credits line and the jasmine/marigold stamps removed. The page now holds only the couple's portrait and our own drawings (envelope, rings, ornaments). |
+| 8 | Contact | Footer: "Call or message us" with three thumb-sized bars (56px): `+91 90353 18232`, `+91 77602 38191`, `+91 98449 42141` as `tel:+91…` links, each with a "WhatsApp" link to `https://wa.me/91…`. Visit card: a compact "Call us" row with the same three `tel:` links (48px each). No names. |
+| 9 | Programme | "Udupi lunch · 12:30" is a plain, non-expandable row (no plus; its time lines up with the others); the menu is gone. "What to wear" removed; no other dress-code mention remains (test). |
+| 10 | Mobile pass | 16px gutters; no horizontal scroll at 360/390/430 (scrollWidth = clientWidth, measured); every visible link/button ≥ 48px (measured, all sizes; top-row links, monogram and the "Getting there" link fixed); body 18px on phones; pinned scene fits 100svh with its text (text block fills exactly the space above the portrait); visit card fully readable (address balances its lines); the portrait is `loading="lazy"` with a low-priority `preload`, and closed programme panels have no box. The no-longer-needed video code was removed from live.js. |
+
+### Ring landing (ring centre vs. finger point computed from the rendered picture)
+
+| Viewport | Frame | Error after landing | Ring outer radius |
+| --- | --- | --- | --- |
+| 360 × 740 | 308 × 462 | 0.25–0.45 px | 4.7 px |
+| 390 × 844 | 338 × 507 | 0.14 px | 5.1 px |
+| 430 × 932 | 378 × 567 | 0.17 px | 5.8 px |
+| 1440 × 900 | 520 × 780 | 0.12 px | 7.9 px |
+| all, reduced motion | | 0 px | |
+
+### Verification
+
+- `npm test`: 55 pass, 0 fail (new: contain fit, push-in keeps heads and hand inside, Soumya everywhere visible, no question, no found pictures/credits/video, plain lunch row and no dress code, the three numbers with tel: and WhatsApp in the footer and by the venue).
+- `lint.mjs index.html css js`: 0 FAIL, 0 WARN.
+- `inspect.mjs …#hero`: 1 FAIL, 4 WARN. **Recorded, not fixed (client's decision):** `few-pictures` (1 picture: the couple's portrait) and `no-footage` (the lamps clip was removed on request). Defended: `grey-body` (the programme bars, paper on the bar tone, 4.66:1, are now the most common running text since the story left; AA, the design system's bar tone); `pinned-over-picture` and `long-pin` (the ring layer counted as a picture, the card laid over the portrait by request, the curtain footer), as before. Two findings fixed on the way: a phantom "eyebrow" from a closed programme panel that still had a layout box, and footer numbers counted as covered large text.
+- Scripted runs (Chrome via playwright-core) at 360 × 740, 390 × 844, 430 × 932, 1440 × 900: envelope → hero → day at a glance → programme → pin 0/30/47% → ring lands (burst) → 80/100% → visit card → footer → end → back to pin 40% → before the pin → glance → hero; no page errors. Same at all four sizes with reduced motion (ring on finger, "She said yes", card, no burst) and with cdnjs blocked (static, whole portrait, card readable, "She said yes"); mid-init error at 1440 and 390 falls back to the static page. Burst frames at 0.45/0.9/1.5/2.3/3.3/5.2 s at each size. Shots: `.taste-skill/shots/v3-*.png`.
+
+### Concerns
+
+- The deployed address `karan-swathi.vercel.app` still contains "swathi" and appears in the WhatsApp message and the OG URL; changing it needs the Vercel project/domain renamed first (not done; not deployed). `package.json`'s package name and the repo folder also still say swathi (not seen by guests).
+- With the story and pictures gone, the "day at a glance" band is deliberately short; the page is 7.9 screens at 1440.
+- The visit card is laid over the portrait only on screens ≥ 90rem × 52.5rem (it is taller now with "Call us"); elsewhere, phones included, it overlaps the portrait's foot after the pin.
+- The solitaire is small on phones (4.7–5.8 px radius), true to the hand's scale; `FINGER_R` in js/proposal.js is the knob.
