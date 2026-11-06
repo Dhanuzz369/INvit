@@ -21,7 +21,7 @@ test('the precomputed envelope shades are plain colours', () => {
 
 test('overflow-x: clip has a hidden fallback; svh custom property has a vh fallback', () => {
   assert.match(css, /overflow-x: hidden;[^\n]*\n\s*overflow-x: clip;/);
-  assert.match(css, /@supports not \(height: 1svh\)\s*\{\s*\.section--proposal \{ --pic-h: [^}]*100vh/);
+  assert.match(css, /@supports not \(height: 1svh\)\s*\{\s*\.section--proposal \{ --pic-w: [^}]*100vh/);
 });
 
 test('.vercelignore keeps the build tooling and notes out of the deploy', () => {

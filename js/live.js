@@ -77,37 +77,8 @@ function initHostTool() {
   tool.hidden = false;
 }
 
-// The muted loop plays only while it can be seen, and never under reduced
-// motion (then the poster frame shows instead).
-function calmVideos() {
-  const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
-  for (const video of document.querySelectorAll('video[autoplay]')) {
-    let seen = !('IntersectionObserver' in window);
-    const sync = () => {
-      if (calm.matches) {
-        if (video.hasAttribute('autoplay')) {
-          video.removeAttribute('autoplay');
-          video.pause();
-          video.load(); // back to the poster
-        }
-        return;
-      }
-      if (seen) video.play().catch(() => {});
-      else video.pause();
-    };
-    if (!seen) {
-      new IntersectionObserver((entries) => {
-        seen = entries[entries.length - 1].isIntersecting;
-        sync();
-      }).observe(video);
-    }
-    calm.addEventListener?.('change', sync);
-    sync();
-  }
-}
-
 export function initLive() {
-  for (const step of [addressTheGuest, startCountdown, initHostTool, calmVideos]) {
+  for (const step of [addressTheGuest, startCountdown, initHostTool]) {
     try {
       step();
     } catch (err) {

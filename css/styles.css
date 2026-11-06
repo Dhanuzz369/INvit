@@ -1,7 +1,8 @@
-/* Karan & Swathi: engagement invitation
+/* Karan & Soumya: engagement invitation
    The page is a set of stationery for the day: the invitation card on a
-   mehndi green field, the story on paper, the programme card, the couple's
-   portrait with the visit card laid over it, and the back of the card.
+   mehndi green field, the day at a glance on paper, the programme card, the
+   couple's portrait with the visit card laid over it, and the back of the
+   card. Designed phone first: almost every guest opens it from WhatsApp.
 
    Static look and layout. Everything is visible by default; states that hide
    content before an animation live only under html.js-anim (added by JS once
@@ -14,13 +15,13 @@
   /* A two-ink print job on two papers */
   --field: #4F6150;               /* mehndi green: hero, programme, footer fields */
   --field-step: #5C6F5C;          /* one tone up from the field: programme bars (paper text 4.66:1) */
-  --paper: #F6ECE8;               /* blush paper: cards, story, visit card, back of the card */
+  --paper: #F6ECE8;               /* blush paper: cards, the day at a glance, visit card, back of the card */
   --paper-step: #EADCD6;          /* one tone down from paper: the portrait's mat, host tool */
   --paper-deep: #DCCBC4;          /* two tones down: the portrait's frame while it loads */
   --ink: #2F3A2E;                 /* deep sage: all running text (10.2:1 on paper) */
   --accent: #9A5662;              /* rose deep: the action and the diamonds (paper on it 4.66:1) */
   --accent-press: #864A55;
-  --gold: #C9A66B;                /* only the ring art and the stamp margin */
+  --gold: #C9A66B;                /* only the ring art */
   --on-field: #F6ECE8;            /* paper text on the field (5.7:1) */
 
   /* Precomputed flat shades (no color-mix(): older Safari) */
@@ -43,7 +44,7 @@
   --head: 3.25rem;                /* section titles */
   --lead: 1.5rem;                 /* supporting lines, facts, statement */
   --body: 1.125rem;               /* running text, buttons, rows */
-  --small: 1.125rem;              /* captions, notes, imprint */
+  --small: 1.125rem;              /* notes */
 
   --margin: 1rem;
   --gutter: 1rem;
@@ -222,25 +223,6 @@ main {
   .link:hover { text-decoration-color: transparent; }
 }
 
-/* Pictures: square corners, a ground-coloured box while they load */
-.pic__frame {
-  overflow: hidden;
-  background: var(--paper-step);
-}
-.pic__frame img,
-.pic__frame video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-figcaption {
-  margin-top: 0.625rem;
-  font-size: var(--small);
-  line-height: 1.4;
-  font-style: italic;
-  color: var(--ink-soft);
-}
-
 /* ---------- Ring stage + anchors ---------- */
 #ring-stage {
   position: fixed;
@@ -389,6 +371,9 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 }
 .toprow__mark {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
   font-family: var(--font-script);
   font-size: var(--lead);
   line-height: 1;
@@ -398,7 +383,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   padding: 0.5rem 0;
 }
 .toprow__links { display: none; }
-.toprow__links .link { color: var(--on-field); }
+.toprow__links .link { color: var(--on-field); display: inline-flex; align-items: center; min-height: 3rem; }
 .toprow__action { justify-self: end; padding-inline: 1rem; }
 
 .invite-card {
@@ -492,32 +477,21 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 .invite__links .link {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: 3rem;
 }
 
-/* ---------- How it began ---------- */
+/* ---------- The day at a glance ---------- */
+/* The rings meet in the space above the facts (#ring-anchor-about). */
 .section--about {
   background: var(--paper);
   color: var(--ink);
-  padding: var(--section) calc(var(--margin) + var(--safe-right)) var(--section) calc(var(--margin) + var(--safe-left));
+  padding: 2.5rem calc(var(--margin) + var(--safe-right)) var(--section) calc(var(--margin) + var(--safe-left));
 }
-
-.about__head {
-  display: flex;
-  flex-direction: column-reverse; /* on a phone the rings meet just above the title */
-  align-items: flex-start;
-}
-.about__head .title { white-space: nowrap; }
-
-.story {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  max-width: 34rem;
-}
+.ring-anchor--about { margin: 0 auto; }
 
 .facts {
-  margin-top: 3.5rem;
+  margin: 1.5rem auto 0;
+  max-width: 64rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 2rem var(--gutter);
@@ -531,16 +505,8 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   margin-top: 0.25rem;
   font-size: var(--small);
   line-height: 1.35;
-  color: var(--ink-soft);
+  font-style: italic; /* a note, told apart by the italic, in the full ink */
 }
-
-.about__pictures {
-  margin-top: 3.5rem;
-  display: grid;
-  gap: 2.5rem;
-}
-.pic .pic__frame { aspect-ratio: 4 / 3; }
-.pic--jasmine { width: 72%; margin: 2.5rem 0 0 auto; }
 
 /* ---------- The programme card ---------- */
 .section--details {
@@ -625,41 +591,46 @@ details[open] > .host-tool__body { animation: panel-in 260ms var(--ease-out); }
 .bar__plus::after { transform: rotate(90deg); }
 details[open] > summary .bar__plus { transform: rotate(45deg); }
 
+/* a closed row's panel has no box at all (some browsers keep laying out
+   hidden details content, which then overlaps what follows) */
+details:not([open]) > .bar__panel { display: none; }
+details[open] > .bar__panel .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+}
 .bar__panel {
   padding: 0.25rem 1.125rem 1.25rem;
   display: grid;
   gap: 0.75rem;
   max-width: 38rem;
 }
-.menu { display: grid; gap: 0.875rem; }
-.menu li {
+/* a row with nothing to open: the same bar, no plus, no pointer; its time
+   lines up with the times of the rows that open */
+.bar__row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
   gap: 1rem;
+  min-height: 3.375rem;
+  padding: 0.5rem calc(1.125rem + 0.875rem + 1rem + 0.25rem) 0.5rem 1.125rem; /* padding + plus + gap + its margin */
+  font-weight: 500;
+  line-height: 1.25;
 }
-.menu li span:last-child { font-style: italic; text-align: right; }
-
-.programme__picture .pic__frame {
-  aspect-ratio: 4 / 5;
-  background: #3F4E40;
-}
-.programme__picture figcaption { color: var(--on-field); }
 
 /* ---------- The proposal: the couple's portrait, then the visit card on it ---------- */
 /* The portrait is mounted like the invitation card: a paper mat with scooped
    corners, hung in the page's one dark room (the ink ground), no outline, no
-   shadow. Its size comes from the
-   screen: on a phone the text sits above it and the mat ends at the bottom of
-   the screen, so the visit card that follows (overlapping the mat's bottom
-   edge) stays out of sight while the scene is pinned. The picture may be
-   cropped to 3:4 at most (top first: the ring hand is near its bottom). */
+   shadow. The frame always has the picture's own 2:3 shape, so the whole
+   portrait shows, both heads included, at every size: as wide as the phone
+   allows, or as tall as the screen left under the text allows. On a phone
+   the mat ends at the bottom of the screen, so the visit card that follows
+   (overlapping the mat's foot) stays out of sight while the scene is pinned. */
 .section--proposal {
   --mat: 0.625rem;
-  --reserve: 14.5rem; /* the beats, the title and the line above the portrait */
+  --reserve: 13.5rem; /* the beats, the title and the line above the portrait */
   --avail-w: calc(100vw - 2 * var(--margin) - 2 * var(--mat));
-  --pic-h: min(var(--avail-w) * 1.5, 100svh - 1rem - var(--reserve) - 2 * var(--mat));
-  --pic-w: min(var(--avail-w), var(--pic-h) * 0.75);
+  --pic-w: min(var(--avail-w), (100svh - 1rem - var(--reserve) - 2 * var(--mat)) * 2 / 3);
+  --pic-h: calc(var(--pic-w) * 1.5);
   --venue-over: 0; /* 1 where the visit card is laid over the portrait's side (js/proposal.js reads it) */
   background: var(--ink); /* the one dark room of the page: the portrait hangs in it */
   color: var(--paper);
@@ -668,7 +639,7 @@ details[open] > summary .bar__plus { transform: rotate(45deg); }
 /* a custom property cannot fall back by repetition (svh would only fail
    where it is used), so browsers without svh get the vh value here */
 @supports not (height: 1svh) {
-  .section--proposal { --pic-h: min(var(--avail-w) * 1.5, 100vh - 1rem - var(--reserve) - 2 * var(--mat)); }
+  .section--proposal { --pic-w: min(var(--avail-w), (100vh - 1rem - var(--reserve) - 2 * var(--mat)) * 2 / 3); }
 }
 
 .proposal__text {
@@ -707,11 +678,9 @@ details[open] > summary .bar__plus { transform: rotate(45deg); }
 }
 .beat.is-on::before { opacity: 1; transform: rotate(45deg); }
 
-/* The question and the answer share one place */
+/* The answer: its place is kept while it waits */
 .proposal__titles { display: grid; line-height: 1.15; }
-.proposal__titles > * { grid-area: 1 / 1; align-self: end; } /* a one line answer sits on the question's last line */
-html:not(.js-anim) .proposal-yes { visibility: hidden; } /* static portrait: the question, no "yes" yet */
-html.js-anim .proposal-yes { opacity: 0; }
+html.js-anim .proposal-yes { opacity: 0; } /* until the ring is on (js/proposal.js); without motion it simply shows */
 
 .proposal__say { display: grid; gap: 0.75rem; }
 .proposal__desc { max-width: 34ch; }
@@ -750,10 +719,10 @@ html.js-anim .proposal-yes { opacity: 0; }
 }
 .portrait__img {
   max-width: none;
-  object-fit: cover;
-  object-position: 50% 85%;
-  /* the push-in (js/proposal.js) closes in between their faces and her hands */
-  transform-origin: 54% 66%;
+  object-fit: contain; /* the frame is 2:3: the whole picture, nothing cropped */
+  /* the push-in (js/proposal.js, 4%) is anchored high, between their faces,
+     so both heads stay inside the frame and her hands stay in view */
+  transform-origin: 54% 28%;
 }
 
 /* jasmine and rose petals of the finale (js/proposal.js), over the picture */
@@ -764,6 +733,26 @@ html.js-anim .proposal-yes { opacity: 0; }
   height: 100%;
   overflow: visible;
   pointer-events: none;
+}
+
+/* The rose burst (js/burst.js): a full screen layer, there only while it plays */
+.burst {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  overflow: hidden;
+  pointer-events: none;
+  display: none;
+  contain: strict;
+}
+.burst.is-on { display: block; }
+.burst__petal {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  background: center / contain no-repeat;
+  will-change: transform, opacity;
 }
 
 /* where the rings arrive: on the bouquet's wrap, above her hands
@@ -783,7 +772,7 @@ html.js-anim .proposal-yes { opacity: 0; }
 .visit {
   position: relative;
   z-index: 2;
-  margin: calc(-1 * var(--mat) - 0.5rem) var(--mat) 0;
+  margin: calc(-1 * var(--mat) - 0.375rem) var(--mat) 0;
 }
 #venue:focus { outline: none; }
 .visit-card {
@@ -813,7 +802,27 @@ html.js-anim .proposal-yes { opacity: 0; }
 .visit__links .link {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: 3rem;
+}
+.visit__call {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 1.25rem;
+}
+.visit__call-label { font-style: italic; }
+.visit__numbers {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+}
+.visit__numbers .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
 }
 
 /* ---------- The back of the card (curtain footer) ---------- */
@@ -863,24 +872,48 @@ html.js-anim .proposal-yes { opacity: 0; }
 .closing__links .link {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: 3rem;
 }
 
-.stamps {
-  order: 2;
+
+/* Call or message us: one bar per number, the number to call on the left,
+   WhatsApp on the right; both thumb sized */
+.contact__title { font-size: var(--lead); font-style: italic; line-height: 1.2; }
+.contact__list { display: grid; gap: 6px; margin-top: 0.875rem; }
+.contact__item {
   display: flex;
-  gap: 0.5rem;
-  flex: none;
+  align-items: stretch;
+  justify-content: space-between;
+  background: var(--paper-step);
 }
-.stamp {
-  width: 4rem;
-  height: auto;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
-  padding: 0.25rem;
-  background: var(--gold);
+.contact__call,
+.contact__wa {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3.5rem;
+  padding: 0 1.125rem;
+  color: var(--ink);
+  transition: background-color var(--t-hover) ease;
 }
-.stamp--second { margin-top: 0.75rem; }
+.contact__call {
+  flex: 1;
+  font-size: var(--body);
+  font-weight: 500;
+  font-variant-numeric: lining-nums;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.contact__wa {
+  text-decoration-line: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.24em;
+}
+.contact__call:active,
+.contact__wa:active { background-color: #E2D2CB; }
+@media (hover: hover) and (pointer: fine) {
+  .contact__call:hover,
+  .contact__wa:hover { background-color: #E2D2CB; }
+}
 
 /* The hosts' tool: a bar like the programme's, on paper */
 .host-tool { background: var(--paper-step); }
@@ -925,12 +958,6 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
 }
 .host-tool__status { min-height: 1.5em; font-size: var(--small); font-style: italic; }
 
-.imprint {
-  font-size: var(--small);
-  line-height: 1.5;
-  color: var(--ink);
-}
-.imprint a { text-underline-offset: 0.18em; text-decoration-thickness: 0.06em; }
 
 /* Curtain: on screens tall enough to hold it, the back of the card waits,
    stuck to the bottom of the screen, under the page, and is uncovered as
@@ -966,22 +993,8 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   .names__one { left: -0.3em; }
   .names__two { left: 0.3em; }
 
-  .story { margin-top: 2rem; }
-  .facts {
-    margin-top: 6rem;
-    display: flex;
-    justify-content: space-between;
-    gap: var(--gutter);
-  }
-  .about__pictures {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    align-items: start;
-    margin-top: 3.5rem;
-  }
-  .pic--coffee { grid-column: 7 / 13; }
-  @media (min-width: 64rem) { .pic--coffee { grid-column: 5 / 13; } }
 
+  .facts { display: flex; justify-content: space-between; gap: var(--gutter); margin-top: 2rem; }
   .programme__layout { max-width: 40rem; margin: 0 auto; }
 
   .section--proposal { --mat: 1rem; --reserve: 15rem; }
@@ -993,7 +1006,6 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   .closing__panel { padding: 3rem 3rem 2rem; }
   .closing__panel::before { aspect-ratio: 24 / 1; background-size: calc(100% / 12) 100%; }
   .closing__side { justify-content: flex-start; gap: 3rem; }
-  .stamp { width: 5.5rem; padding: 0.375rem; }
 }
 
 /* ---------- Desktop ---------- */
@@ -1004,11 +1016,10 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
     column-gap: var(--gutter);
     align-items: start;
   }
-  .programme__column { grid-column: 2 / 8; }
+  .programme__column { grid-column: 4 / 10; justify-self: center; }
   /* the column is exactly as wide as the giant word at the display size */
   .programme { container-type: normal; width: calc(var(--display) * 2.76); max-width: 100%; }
   .programme__word { font-size: var(--display); }
-  .programme__picture { grid-column: 8 / 12; margin-top: 5.5rem; }
 
   /* the text beside the portrait, as large as the screen allows (whole, 2:3);
      the visit card follows it, overlapping its foot, as on a phone */
@@ -1042,7 +1053,7 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   /* Screens with room for it: the visit card is laid over the portrait's right
      side (Karan's sleeve), below his face and clear of her hands, reaching out
      onto the ground; it arrives at the end of the pin (js/proposal.js). */
-  @media (min-width: 83rem) and (min-height: 52.5rem) {
+  @media (min-width: 90rem) and (min-height: 52.5rem) {
     .section--proposal {
       --venue-over: 1;
       grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -1057,28 +1068,16 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
       position: absolute;
       left: calc(100% - 7.5rem);
       top: 26%;
-      width: min(31rem, 50vw - var(--pic-w) / 2 + 4.5rem);
+      width: min(33rem, 50vw - var(--pic-w) / 2 + 4.5rem); /* wide enough for the title on one line */
       margin: 0;
     }
   }
 
   .invite__when time { flex-direction: row; gap: 1.25rem; }
 
-  .about__top {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: var(--gutter);
-    align-items: start;
-  }
-  /* the rings meet in the space after the title, far enough from it that
-     the rose ring has faded while it slides past the last letters */
-  .about__head { grid-column: 1 / 7; grid-row: 1; flex-direction: row; align-items: center; gap: clamp(3rem, 7vw, 7rem); }
-  .story { grid-column: 7 / 13; grid-row: 1 / span 2; margin-top: 0.5rem; }
-  /* the jasmine sits under the title, beside the story that mentions it */
-  .pic--jasmine { grid-column: 1 / 6; grid-row: 2; width: auto; margin: 2.5rem 0 0; }
 
-  /* the back of a postcard: message left, links and stamps right, the small
-     print under the message, the hosts' tool under the links */
+  /* the back of a postcard: message left, links right, the numbers to call
+     under the message, the hosts' tool under the links */
   .closing__panel {
     width: calc(100% * 10 / 12);
     padding: 3.5rem 3.5rem 2.5rem;
@@ -1088,9 +1087,8 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
     align-items: start;
   }
   .closing__side { flex-direction: column; align-items: stretch; gap: 1.5rem; }
-  .stamps { order: 0; align-self: flex-end; }
-  .imprint { grid-row: 2; grid-column: 1; }
-  .host-tool { grid-row: 2; grid-column: 2; }
+  .contact { grid-row: 2; grid-column: 1; }
+  .host-tool { grid-row: 2; grid-column: 2; align-self: end; }
 }
 
 /* ---------- Hidden before animation (only when JS animation is active) ---------- */
@@ -1107,24 +1105,8 @@ html.js-anim #tagline .w { opacity: 0.3; }
 
 /* programme rows arrive one by one with a short rise */
 html.js-anim .bar.reveal { transform: translateY(16px); }
-/* pictures open like a shutter from the bottom edge while the picture
-   settles from a slight scale; the figure itself only fades */
-html.js-anim .pic.reveal,
-html.js-anim .programme__picture.reveal { transform: none; }
-html.js-anim .reveal .pic__frame {
-  clip-path: inset(100% 0 0 0);
-  transition: clip-path 1100ms var(--ease-in-out);
-}
-html.js-anim .reveal .pic__frame > * {
-  transform: scale(1.08);
-  transition: transform 1500ms var(--ease-soft);
-}
-html.js-anim .reveal.is-in .pic__frame { clip-path: inset(0); }
-html.js-anim .reveal.is-in .pic__frame > * { transform: none; }
 /* the visit card rises a little further, like a card laid on the picture */
 html.js-anim .visit-card.reveal { transform: translateY(40px); }
-/* the stamps settle onto the back of the card */
-html.js-anim .stamps.reveal { transform: translateY(16px) rotate(3deg); transform-origin: 100% 0; }
 html.js-anim .reveal.is-in { transform: none; }
 .reveal-end { display: block; height: 0; } /* page end markers (js/main.js) */
 
@@ -1151,10 +1133,7 @@ html.js-anim .envelope { cursor: pointer; }
   details[open] > .host-tool__body { animation: none; }
   html.js-anim .reveal,
   html.js-anim .bar.reveal,
-  html.js-anim .visit-card.reveal,
-  html.js-anim .stamps.reveal { transform: none; }
-  html.js-anim .reveal .pic__frame,
-  html.js-anim .reveal .pic__frame > * { clip-path: none; transform: none; transition: none; }
+  html.js-anim .visit-card.reveal { transform: none; }
   html.js-anim .reveal.is-in { transition: opacity 700ms var(--ease-out); }
   html.js-anim #tagline .w { opacity: 1; }
 }

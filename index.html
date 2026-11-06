@@ -69,6 +69,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Great+Vibes&display=swap">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="preload" as="image" href="assets/karan-soumya-portrait.webp" type="image/webp" fetchpriority="low">
 </head>
 <body>
   <!-- Fixed layer for the travelling rings. Each ring is drawn centred on its
@@ -266,7 +267,6 @@
       <header class="toprow">
         <a class="toprow__mark" href="#hero" aria-label="Karan and Soumya, back to the top">K <span class="toprow__amp">&amp;</span> S</a>
         <nav class="toprow__links" aria-label="Parts of the invitation">
-          <a class="link" href="#about">Our story</a>
           <a class="link" href="#details">The day</a>
           <a class="link" href="#venue">Venue</a>
         </nav>
@@ -291,7 +291,6 @@
             <span class="w">Two</span> <span class="w">hearts,</span> <span class="w">two</span> <span class="w">worlds,</span> <span class="w">one</span> <span class="w">forever.</span>
           </p>
           <nav class="invite__links" aria-label="Parts of the invitation">
-            <a class="link" href="#about">Our story</a>
             <a class="link" href="#details">The day</a>
             <a class="link" href="#venue">Venue</a>
           </nav>
@@ -299,24 +298,9 @@
       </article>
     </section>
 
-    <!-- How it began: title, note, facts row, and two found pictures -->
-    <section id="about" class="section section--about" aria-labelledby="about-title">
-      <div class="about__top">
-        <div class="about__head">
-          <h2 id="about-title" class="title reveal">How it began</h2>
-          <div id="ring-anchor-about" class="ring-anchor ring-anchor--about" aria-hidden="true"></div>
-        </div>
-        <div class="story">
-          <p class="reveal">It started the way the best South Indian stories do: over filter coffee. Our families had known each other for years, and one Sunday, somewhere between the banana leaf lunch and a second helping of payasam, the elders decided we should “just meet once.”</p>
-          <p class="reveal">Karan came a little late. Soumya pretended not to notice. Then he asked about the jasmine in her hair, and the coffee went cold while we talked.</p>
-          <p class="reveal">Many calls, many festivals and one very nervous question later, two families became one.</p>
-        </div>
-        <figure class="pic pic--jasmine reveal">
-          <div class="pic__frame"><img src="assets/found/jasmine-string.webp" width="960" height="720" loading="lazy" decoding="async" alt="A thick string of jasmine buds laid across a green banana leaf"></div>
-          <figcaption>Mangaluru mallige, strung on a banana leaf</figcaption>
-        </figure>
-      </div>
-
+    <!-- The day at a glance: the rings meet above the facts -->
+    <section id="about" class="section section--about" aria-label="The day at a glance">
+      <div id="ring-anchor-about" class="ring-anchor ring-anchor--about" aria-hidden="true"></div>
       <dl class="facts">
         <div class="fact reveal"><dt>Sunday</dt><dd>the ring ceremony</dd></div>
         <div class="fact reveal"><dt>15 November</dt><dd>2026</dd></div>
@@ -324,13 +308,6 @@
         <div class="fact reveal"><dt>11:00 AM</dt><dd>please be seated by 10:45</dd></div>
         <div class="fact fact--live reveal" data-countdown hidden><dt data-countdown-main></dt><dd data-countdown-note></dd></div>
       </dl>
-
-      <div class="about__pictures">
-        <figure class="pic pic--coffee reveal">
-          <div class="pic__frame"><img src="assets/found/filter-coffee.webp" width="1280" height="960" loading="lazy" decoding="async" alt="Two steel davara and tumbler sets of frothy South Indian filter coffee on a dark granite counter"></div>
-          <figcaption>Filter coffee, in a davara and tumbler</figcaption>
-        </figure>
-      </div>
     </section>
 
     <!-- The programme card: the morning hour by hour, and the lunch -->
@@ -355,26 +332,10 @@
                 <summary><span class="bar__name">Blessings</span><span class="bar__time">11:45</span><span class="bar__plus" aria-hidden="true"></span></summary>
                 <div class="bar__panel"><p>The elders bless the couple. Time for photographs with family.</p></div>
               </details>
-              <!-- sample: confirm (the whole menu) -->
-              <details class="detail-row bar reveal">
-                <summary><span class="bar__name">Udupi lunch</span><span class="bar__time">12:30</span><span class="bar__plus" aria-hidden="true"></span></summary>
-                <div class="bar__panel">
-                  <p>Served on banana leaf.</p>
-                  <ul class="menu">
-                    <li><span>Kosambari</span><span>moong dal and cucumber</span></li>
-                    <li><span>Palya</span><span>beans with fresh coconut</span></li>
-                    <li><span>Bisi bele bath</span><span>rice, lentils and spice</span></li>
-                    <li><span>Rasam and rice</span><span>with ghee</span></li>
-                    <li><span>Holige with ghee</span><span>sweet flatbread</span></li>
-                    <li><span>Payasam</span><span>a second helping welcome</span></li>
-                    <li><span>Filter coffee</span><span>to finish</span></li>
-                  </ul>
-                </div>
-              </details>
-              <details class="detail-row bar reveal">
-                <summary><span class="bar__name">What to wear</span><span class="bar__plus" aria-hidden="true"></span></summary>
-                <div class="bar__panel"><p>Indo western or traditional; come as you are, come with love.</p></div>
-              </details>
+              <!-- sample: confirm -->
+              <div class="detail-row bar bar--plain reveal">
+                <p class="bar__row"><span class="bar__name">Udupi lunch</span><span class="bar__time">12:30</span></p>
+              </div>
               <details class="detail-row bar reveal">
                 <summary><span class="bar__name">Getting there</span><span class="bar__plus" aria-hidden="true"></span></summary>
                 <div class="bar__panel">
@@ -387,15 +348,6 @@
           </div>
         </div>
 
-        <figure class="programme__picture reveal">
-          <div class="pic__frame">
-            <video class="programme__video" autoplay muted loop playsinline preload="metadata" poster="assets/found/brass-lamps-poster.webp" width="576" height="720" aria-hidden="true">
-              <source src="assets/found/brass-lamps-loop.webm" type="video/webm">
-              <source src="assets/found/brass-lamps-loop.mp4" type="video/mp4">
-            </video>
-          </div>
-          <figcaption>Brass lamps lit for Deepavali, RR Nagar, Bengaluru</figcaption>
-        </figure>
       </div>
     </section>
 
@@ -405,17 +357,14 @@
     <section id="proposal" class="section section--proposal" aria-labelledby="proposal-title">
       <div class="proposal__text">
         <ul class="beats reveal" aria-label="The proposal, in three moments">
-          <li class="beat is-on" data-beat="0">The roses</li>
+          <li class="beat" data-beat="0">The roses</li>
           <li class="beat" data-beat="1">The ring</li>
-          <li class="beat" data-beat="2">The yes</li>
+          <li class="beat is-on" data-beat="2">The yes</li>
         </ul>
         <div class="proposal__say reveal">
-          <!-- the question, then the answer: they share one place on the page and
-               one heading, so the heading reads "Will you, Soumya? She said yes" -->
-          <h2 id="proposal-title" class="title proposal__titles">
-            <span class="proposal__ask">Will you, Soumya?</span>
-            <span id="proposal-yes" class="proposal-yes">She said yes</span>
-          </h2>
+          <!-- no title until the ring is on her finger (js/proposal.js); the page
+               without motion shows the answer straight away -->
+          <h2 id="proposal-title" class="title proposal__titles"><span id="proposal-yes" class="proposal-yes">She said yes</span></h2>
           <p class="proposal__desc">A bunch of red roses, one ring and one very nervous question. The rest is a lifetime.</p>
         </div>
       </div>
@@ -448,6 +397,14 @@
               <a id="add-calendar" class="link" href="assets/karan-soumya-engagement.ics" data-ics>Add to calendar</a>
               <a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share the invitation</a>
             </p>
+            <div class="visit__call">
+              <p class="visit__call-label">Call us</p>
+              <ul class="visit__numbers">
+                <li><a class="link" href="tel:+919035318232">+91 90353 18232</a></li>
+                <li><a class="link" href="tel:+917760238191">+91 77602 38191</a></li>
+                <li><a class="link" href="tel:+919844942141">+91 98449 42141</a></li>
+              </ul>
+            </div>
           </div>
         </section>
       </div>
@@ -463,14 +420,29 @@
         <p class="closing__note reveal">With the blessings of both families. We cannot wait to see you there.</p>
       </div>
       <div class="closing__side">
-        <div class="stamps reveal" aria-hidden="true">
-          <img class="stamp" src="assets/found/jasmine-stamp.webp" width="360" height="480" loading="lazy" decoding="async" alt="">
-          <img class="stamp stamp--second" src="assets/found/marigold-stamp.webp" width="360" height="480" loading="lazy" decoding="async" alt="">
-        </div>
         <ul class="closing__links reveal">
           <li><a class="link" href="https://www.google.com/maps/dir/?api=1&amp;destination=12.9570977,77.5703652" target="_blank" rel="noopener">Get directions</a></li>
           <li><a class="link" href="assets/karan-soumya-engagement.ics" data-ics>Add to calendar</a></li>
           <li><a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share on WhatsApp</a></li>
+        </ul>
+      </div>
+
+      <!-- Call or message us: tap to call, or open a WhatsApp chat -->
+      <div class="contact">
+        <p class="contact__title reveal">Call or message us</p>
+        <ul class="contact__list">
+          <li class="contact__item reveal">
+            <a class="contact__call" href="tel:+919035318232">+91 90353 18232</a>
+            <a class="contact__wa" href="https://wa.me/919035318232" target="_blank" rel="noopener" aria-label="WhatsApp +91 90353 18232">WhatsApp</a>
+          </li>
+          <li class="contact__item reveal">
+            <a class="contact__call" href="tel:+917760238191">+91 77602 38191</a>
+            <a class="contact__wa" href="https://wa.me/917760238191" target="_blank" rel="noopener" aria-label="WhatsApp +91 77602 38191">WhatsApp</a>
+          </li>
+          <li class="contact__item reveal">
+            <a class="contact__call" href="tel:+919844942141">+91 98449 42141</a>
+            <a class="contact__wa" href="https://wa.me/919844942141" target="_blank" rel="noopener" aria-label="WhatsApp +91 98449 42141">WhatsApp</a>
+          </li>
         </ul>
       </div>
 
@@ -490,7 +462,6 @@
         </div>
       </details>
 
-      <p class="imprint">Pictures and footage of the world around us, with thanks to their makers: <a href="https://commons.wikimedia.org/wiki/File:Memorable_Coffee.jpg">“Memorable Coffee”</a> by K.Sreeram 2603, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a>; <a href="https://commons.wikimedia.org/wiki/File:Mangaluru_Mallige_(Mangalore_Jasmine_Flower)_5.jpg">“Mangaluru Mallige (Mangalore Jasmine Flower) 5”</a> by Yakshitha, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Deepavali_diyas_in_RR_Nagar,_Bangalore_(2025).webm">“Deepavali diyas in RR Nagar, Bangalore (2025)”</a> by Gpkp, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Jasmine_(376619150).jpg">“Jasmine”</a> by Dinesh Valke, <a href="https://creativecommons.org/licenses/by-sa/2.0">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Marigold_Flowers_as_garland.jpg">“Marigold Flowers as garland”</a> by SnapMeUp, <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>; all via Wikimedia Commons, cropped and lightly toned (shared under the same licences). The portrait of Karan and Soumya is their own, and so are the drawings of the rings.</p>
     </div>
   </footer>
 

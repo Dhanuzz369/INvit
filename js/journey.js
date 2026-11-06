@@ -41,7 +41,7 @@ const TRANSIT_EDGE = 0.12; // first/last share of a transit over which the fade 
 const TEXT_BLOCKS = [
   '.invite__together', '#hero-names', '.invite__engaged', '.invite__when', '.invite__where',
   '.invite__dear', '#tagline',
-  '#about .title', '.story p', '.fact',
+  '.fact',
   '.programme__word', '#details-card .detail-row',
 ].join(',');
 

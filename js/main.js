@@ -4,7 +4,7 @@ import { initJourney } from './journey.js';
 import { prepareProposal, initProposal, stopProposal } from './proposal.js';
 import { initLive } from './live.js';
 
-// Calendar links point at the static assets/karan-swathi-engagement.ics
+// Calendar links point at the static assets/karan-soumya-engagement.ics
 // (written from js/lib.js by `npm run build:ics`), so they work without JS.
 
 const root = document.documentElement;
@@ -118,7 +118,7 @@ function fallBack(err) {
     gsap.globalTimeline.getChildren(true, true, true).forEach((t) => t.kill());
     const touched = document.querySelectorAll(
       '#hero-names > span, #tagline .w, .reveal, #ring-stage .ring, #ring-stage .ring > *,' +
-        ' #proposal-yes, .proposal__ask, #envelope *'
+        ' #proposal-yes, #envelope *'
     );
     // only what GSAP actually touched (el._gsap), so untouched SVG keeps its markup
     const cleared = [...touched].filter((el) => el._gsap);
