@@ -14,7 +14,7 @@ export function directionsUrl(lat, lng) {
 
 // --- The live invitation: the guest's name, the countdown, personal links ---
 
-export const SITE_URL = 'https://karan-swathi.vercel.app/'; // the deployed address (unchanged)
+export const SITE_URL = 'https://karan-sowmya.vercel.app/'; // the deployed address (unchanged)
 const NAME_MAX = 60; // characters, enough for "Ananya, Rohit & the children"
 
 // A guest's name as it may be written on the envelope: control characters,

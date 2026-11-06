@@ -367,7 +367,7 @@ html.js-anim #ring-stage .ring { opacity: 0; }
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 1rem;
-  padding: calc(0.75rem + var(--safe-top)) calc(var(--margin) + var(--safe-right)) 0 calc(var(--margin) + var(--safe-left));
+  padding: calc(0.75rem + var(--safe-top)) calc(var(--margin) + var(--garland-w) + var(--safe-right)) 0 calc(var(--margin) + var(--garland-w) + var(--safe-left));
 }
 .toprow__mark {
   justify-self: start;
@@ -1136,4 +1136,28 @@ html.js-anim .envelope { cursor: pointer; }
   html.js-anim .visit-card.reveal { transform: none; }
   html.js-anim .reveal.is-in { transition: opacity 700ms var(--ease-out); }
   html.js-anim #tagline .w { opacity: 1; }
+}
+
+/* Hanging marigold and jasmine strands at both sides (traditional toran).
+   Decorative, fixed, never take taps; they sway from the top. */
+:root { --garland-w: 1.25rem; }
+@media (min-width: 48rem) { :root { --garland-w: 2.25rem; } }
+.garlands { position: fixed; inset: 0; pointer-events: none; z-index: 31; }
+.garland {
+  position: absolute;
+  top: calc(-0.25rem + var(--safe-top));
+  width: var(--garland-w);
+  height: calc(var(--garland-w) * 10.5);
+  transform-origin: 50% 0;
+  animation: garland-sway 4.8s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  will-change: transform;
+}
+.garland--left { left: calc(0.15rem + var(--safe-left)); }
+.garland--right { right: calc(0.15rem + var(--safe-right)); animation-delay: -2.4s; }
+@keyframes garland-sway {
+  from { transform: rotate(-2.6deg); }
+  to   { transform: rotate(2.6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .garland { animation: none; }
 }

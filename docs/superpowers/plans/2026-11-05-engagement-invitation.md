@@ -148,7 +148,7 @@
 - [ ] **Step 1:** `main.js` adds `html.js-anim` only after GSAP loaded and registered; otherwise the page stays fully static and readable (Review Focus 3).
 - [ ] **Step 2:** Reduced motion path per Global Constraints; proposal shows final kneeling pose static.
 - [ ] **Step 3:** A11y: proposal scene `role="img"` with `aria-label="Karan kneels and places the ring on Swathi's finger"`; decorative SVG `aria-hidden`; visible focus rings.
-- [ ] **Step 4:** OG image: screenshot the hero (rings + names) at 1200×630 into `assets/og.jpg`; OG/Twitter tags use absolute URL of the deployed site (placeholder `https://karan-swathi.vercel.app` replaced in Task 9).
+- [ ] **Step 4:** OG image: screenshot the hero (rings + names) at 1200×630 into `assets/og.jpg`; OG/Twitter tags use absolute URL of the deployed site (placeholder `https://karan-sowmya.vercel.app` replaced in Task 9).
 - [ ] **Step 5: Verify:** (a) block `cdnjs.cloudflare.com` in the browser, reload: all details visible, directions works; (b) emulate reduced motion: all content visible, no movement; (c) run `npm test`; (d) Lighthouse-style check: no console errors, no horizontal scroll at 360px.
 - [ ] **Step 6:** Commit `feat: fallback, accessibility and share preview`.
 

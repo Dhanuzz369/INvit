@@ -52,10 +52,10 @@
   </script>
 
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://karan-swathi.vercel.app/">
+  <meta property="og:url" content="https://karan-sowmya.vercel.app/">
   <meta property="og:title" content="Karan &amp; Soumya are getting engaged">
   <meta property="og:description" content="Sunday, 15 November 2026, 11:00 AM · Udupi Aatithya, Chamrajpet, Bengaluru">
-  <meta property="og:image" content="https://karan-swathi.vercel.app/assets/og.jpg">
+  <meta property="og:image" content="https://karan-sowmya.vercel.app/assets/og.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -63,7 +63,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Karan &amp; Soumya are getting engaged">
   <meta name="twitter:description" content="Sunday, 15 November 2026, 11:00 AM · Udupi Aatithya, Chamrajpet, Bengaluru">
-  <meta name="twitter:image" content="https://karan-swathi.vercel.app/assets/og.jpg">
+  <meta name="twitter:image" content="https://karan-sowmya.vercel.app/assets/og.jpg">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -72,6 +72,54 @@
   <link rel="preload" as="image" href="assets/karan-soumya-portrait.webp" type="image/webp" fetchpriority="low">
 </head>
 <body>
+  <!-- Two hanging toran strands of marigold and jasmine, one at each side of
+       the page. Decorative only; they sway gently (CSS) and stay still under
+       reduced motion. -->
+  <div class="garlands" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute" focusable="false">
+      <defs>
+        <g id="g-marigold">
+          <circle r="11" fill="#D9682A"/>
+          <g fill="#E8833A">
+            <circle cx="0" cy="-10" r="4.2"/><circle cx="7.1" cy="-7.1" r="4.2"/><circle cx="10" cy="0" r="4.2"/><circle cx="7.1" cy="7.1" r="4.2"/>
+            <circle cx="0" cy="10" r="4.2"/><circle cx="-7.1" cy="7.1" r="4.2"/><circle cx="-10" cy="0" r="4.2"/><circle cx="-7.1" cy="-7.1" r="4.2"/>
+          </g>
+          <circle r="6.5" fill="#F2A23A"/>
+          <circle r="2.4" fill="#C2561C"/>
+        </g>
+        <g id="g-jasmine">
+          <g fill="#FFFDF6" stroke="#C9B08A" stroke-width="0.7">
+            <ellipse cx="0" cy="-5" rx="2.8" ry="5"/>
+            <ellipse cx="0" cy="-5" rx="2.8" ry="5" transform="rotate(72)"/>
+            <ellipse cx="0" cy="-5" rx="2.8" ry="5" transform="rotate(144)"/>
+            <ellipse cx="0" cy="-5" rx="2.8" ry="5" transform="rotate(216)"/>
+            <ellipse cx="0" cy="-5" rx="2.8" ry="5" transform="rotate(288)"/>
+          </g>
+          <circle r="1.6" fill="#D8C45A"/>
+        </g>
+        <symbol id="garland-strand" viewBox="0 0 40 420">
+          <path d="M20 0 V404" stroke="#8A6A3A" stroke-width="1.3" fill="none"/>
+          <path d="M20 6 C 8 4, 2 14, 4 26 C 12 22, 18 16, 20 6 Z" fill="#5E7D48"/>
+          <path d="M20 6 C 32 4, 38 14, 36 26 C 28 22, 22 16, 20 6 Z" fill="#6E8F55"/>
+          <use href="#g-marigold" x="20" y="44"/>
+          <use href="#g-jasmine" x="20" y="78"/>
+          <use href="#g-marigold" x="20" y="110"/>
+          <use href="#g-jasmine" x="20" y="144"/>
+          <use href="#g-marigold" x="20" y="176"/>
+          <use href="#g-jasmine" x="20" y="210"/>
+          <use href="#g-marigold" x="20" y="242"/>
+          <use href="#g-jasmine" x="20" y="276"/>
+          <use href="#g-marigold" x="20" y="308"/>
+          <use href="#g-jasmine" x="20" y="342"/>
+          <use href="#g-marigold" x="20" y="376" transform="translate(20 376) scale(1.25) translate(-20 -376)"/>
+          <path d="M16 392 L14 418 M20 393 L20 420 M24 392 L26 418" stroke="#C9A66B" stroke-width="1.6" stroke-linecap="round"/>
+        </symbol>
+      </defs>
+    </svg>
+    <svg class="garland garland--left" viewBox="0 0 40 420" focusable="false"><use href="#garland-strand"/></svg>
+    <svg class="garland garland--right" viewBox="0 0 40 420" focusable="false"><use href="#garland-strand"/></svg>
+  </div>
+
   <!-- Fixed layer for the travelling rings. Each ring is drawn centred on its
        own origin (0,0), outer radius 34. The outer group (#ring-rose,
        #ring-gold) carries the ring's place on the page; the inner .ring__drop
@@ -395,7 +443,7 @@
             <a id="directions" class="btn btn--accent btn--block" href="https://www.google.com/maps/dir/?api=1&amp;destination=12.9570977,77.5703652" target="_blank" rel="noopener">Get directions</a>
             <p class="visit__links">
               <a id="add-calendar" class="link" href="assets/karan-soumya-engagement.ics" data-ics>Add to calendar</a>
-              <a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share the invitation</a>
+              <a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-sowmya.vercel.app%2F" data-share target="_blank" rel="noopener">Share the invitation</a>
             </p>
             <div class="visit__call">
               <p class="visit__call-label">Call us</p>
@@ -423,7 +471,7 @@
         <ul class="closing__links reveal">
           <li><a class="link" href="https://www.google.com/maps/dir/?api=1&amp;destination=12.9570977,77.5703652" target="_blank" rel="noopener">Get directions</a></li>
           <li><a class="link" href="assets/karan-soumya-engagement.ics" data-ics>Add to calendar</a></li>
-          <li><a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share on WhatsApp</a></li>
+          <li><a class="link" href="https://wa.me/?text=Karan%20%26%20Soumya%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-sowmya.vercel.app%2F" data-share target="_blank" rel="noopener">Share on WhatsApp</a></li>
         </ul>
       </div>
 

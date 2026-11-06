@@ -79,7 +79,7 @@ test('countdown: an invalid date gives null', () => {
 // --- personal links ---------------------------------------------------------------
 
 test('personalLink puts the cleaned name on the invitation address', () => {
-  assert.equal(personalLink(SITE_URL, 'Ananya & family'), 'https://karan-swathi.vercel.app/?to=Ananya%20%26%20family');
+  assert.equal(personalLink(SITE_URL, 'Ananya & family'), 'https://karan-sowmya.vercel.app/?to=Ananya%20%26%20family');
   assert.equal(personalLink(SITE_URL, '  '), SITE_URL);
   assert.equal(personalLink('https://example.test/invite/index.html?to=Old#venue', 'Ravi'), 'https://example.test/invite/index.html?to=Ravi');
   assert.equal(guestFromSearch(new URL(personalLink(SITE_URL, 'Ananya & family')).search), 'Ananya & family');
