@@ -46,7 +46,7 @@
   --body: 1.125rem;               /* running text, buttons, rows */
   --small: 1.125rem;              /* notes */
 
-  --margin: 1rem;
+  --margin: 1.625rem;             /* clears the 1.25rem garland strands on phones */
   --gutter: 1rem;
   --section: 4.5rem;              /* space between sections */
 
@@ -233,9 +233,10 @@ main {
   z-index: 20;
   overflow: visible;
   display: none; /* rings only exist once the motion layer runs (html.js-anim) */
-  visibility: hidden; /* the layer itself is not a surface: only the rings are */
+  /* No visibility:hidden on the layer: WebKit (every iPhone browser, WhatsApp
+     included) then paints nothing inside it, even children set visible. The
+     layer has no fill and takes no taps, so it is invisible anyway. */
 }
-#ring-stage .ring { visibility: visible; }
 html.js-anim #ring-stage { display: block; }
 /* Hidden until placed by js/rings.js */
 html.js-anim #ring-stage .ring { opacity: 0; }

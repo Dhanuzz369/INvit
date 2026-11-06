@@ -44,3 +44,12 @@ test('stage level ring groups never go through GSAP transforms', () => {
     assert.ok(!/gsap\.set\(\[?(rose|gold|link|spark)[,\]][^)]*(svgOrigin|scale|x:|rotation)/.test(src), file);
   }
 });
+
+test('the ring layer is never visibility:hidden (WebKit/iPhone then paints no rings inside it)', () => {
+  const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [...code.matchAll(/([^{}]*#ring-stage[^{}]*)\{([^}]*)\}/g)];
+  for (const [, sel, body] of blocks) {
+    if (/#ring-stage\s+\S/.test(sel.trim())) continue; // rules for children, not the layer
+    assert.ok(!/visibility\s*:\s*hidden/.test(body), `${sel.trim()} hides the ring layer`);
+  }
+});
