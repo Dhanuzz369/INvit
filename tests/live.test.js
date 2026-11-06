@@ -88,9 +88,9 @@ test('personalLink puts the cleaned name on the invitation address', () => {
 test('shareMessage and whatsappLink make a ready to send message', () => {
   const link = personalLink(SITE_URL, 'Ananya & family');
   const text = shareMessage(link, 'Ananya & family');
-  assert.ok(text.startsWith('Dear Ananya & family, Karan & Soumya are getting engaged on Sunday, 15 November 2026'));
+  assert.ok(text.startsWith('Dear Ananya & family, Karan & Sowmya Manjunath are getting engaged on Sunday, 15 November 2026'));
   assert.ok(text.endsWith(`Your invitation: ${link}`));
-  assert.equal(shareMessage(SITE_URL).startsWith('Karan & Soumya'), true);
+  assert.equal(shareMessage(SITE_URL).startsWith('Karan & Sowmya Manjunath'), true);
   const wa = whatsappLink(text);
   assert.ok(wa.startsWith('https://wa.me/?text='));
   assert.equal(decodeURIComponent(wa.slice('https://wa.me/?text='.length)), text);

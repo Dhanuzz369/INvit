@@ -1,4 +1,4 @@
-/* Karan & Soumya: engagement invitation
+/* Karan & Sowmya Manjunath: engagement invitation
    The page is a set of stationery for the day: the invitation card on a
    mehndi green field, the day at a glance on paper, the programme card, the
    couple's portrait with the visit card laid over it, and the back of the
@@ -441,7 +441,10 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 }
 /* Offsets use position, not transform, so animation can own transform */
 .names__one,
-.names__two { position: relative; white-space: nowrap; }
+.names__two,
+.names__surname { position: relative; white-space: nowrap; }
+/* Sowmya's family name: the same script, a smaller line under her name */
+.names__surname { display: block; font-size: 0.42em; line-height: 1.1; margin-top: 0.05em; }
 .names__amp { color: inherit; }
 
 .invite__when,
@@ -861,6 +864,7 @@ html.js-anim .proposal-yes { opacity: 0; } /* until the ring is on (js/proposal.
   font-size: var(--head);
   line-height: 1.1;
 }
+.closing__surname { display: block; font-size: 0.6em; line-height: 1.2; }
 .closing__note { margin-top: 0.75rem; max-width: 30ch; }
 
 .closing__side {
@@ -993,6 +997,7 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   }
   .names__one { left: -0.3em; }
   .names__two { left: 0.3em; }
+  .names__surname { left: 0.7em; }
 
 
   .facts { display: flex; justify-content: space-between; gap: var(--gutter); margin-top: 2rem; }

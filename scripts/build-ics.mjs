@@ -5,6 +5,6 @@ import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { EVENT, buildIcs } from '../js/lib.js';
 
-const out = fileURLToPath(new URL('../assets/karan-soumya-engagement.ics', import.meta.url));
+const out = fileURLToPath(new URL('../assets/karan-sowmya-engagement.ics', import.meta.url));
 writeFileSync(out, buildIcs(EVENT));
 console.log(`wrote ${out}`);

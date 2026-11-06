@@ -108,7 +108,7 @@ test('fitPoint contain + the push-in: both heads stay in the frame, the ring fin
   const zoom = { scale: 1.04, origin };
   const at = (x, y) => fitPoint({ x, y }, PORTRAIT, box, undefined, zoom);
   const inside = (p) => p.x >= 0 && p.x <= box.width && p.y >= 0 && p.y <= box.height;
-  // Karan's crown (about 600, 25), Soumya's crown (about 250, 300), her jasmine (40, 650)
+  // Karan's crown (about 600, 25), Sowmya's crown (about 250, 300), her jasmine (40, 650)
   for (const [x, y] of [[600, 25], [250, 300], [40, 650], [900, 300]]) assert.ok(inside(at(x, y)), `${x},${y}`);
   // the ring finger and the ring on it (radius 15 picture px)
   assert.ok(inside(at(568, 1426 + 15)));

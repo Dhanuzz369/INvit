@@ -25,7 +25,7 @@ test('buildIcs produces a valid CRLF calendar with escaped commas', () => {
   assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
   assert.ok(ics.includes('DTSTART:20261115T053000Z'));
   assert.ok(ics.includes('DTEND:20261115T083000Z'));
-  assert.ok(ics.includes('SUMMARY:Karan & Soumya Engagement'));
+  assert.ok(ics.includes('SUMMARY:Karan & Sowmya Manjunath Engagement'));
   assert.ok(ics.includes('LOCATION:Udupi Aatithya\\, 11\\, 5th Main Rd'));
   assert.ok(ics.includes('UID:'));
   assert.ok(ics.includes('DTSTAMP:'));
@@ -43,8 +43,8 @@ test('buildIcs escapes semicolons in LOCATION', () => {
 });
 
 test('buildIcs escapes commas in SUMMARY', () => {
-  const ics = buildIcs({ ...EVENT, title: 'Karan, Soumya' });
-  assert.ok(ics.includes('SUMMARY:Karan\\, Soumya'));
+  const ics = buildIcs({ ...EVENT, title: 'Karan, Sowmya Manjunath' });
+  assert.ok(ics.includes('SUMMARY:Karan\\, Sowmya Manjunath'));
 });
 
 test('cubicBezier matches the CSS curve endpoints and shape', () => {
@@ -115,7 +115,7 @@ test('collapsePin: content offset collapses the pinned stretch', async () => {
 
 test('the shipped .ics file matches buildIcs(EVENT) (run npm run build:ics after editing EVENT)', async () => {
   const { readFileSync } = await import('node:fs');
-  const shipped = readFileSync(new URL('../assets/karan-soumya-engagement.ics', import.meta.url), 'utf8');
+  const shipped = readFileSync(new URL('../assets/karan-sowmya-engagement.ics', import.meta.url), 'utf8');
   const noStamp = (s) => s.replace(/DTSTAMP:\d{8}T\d{6}Z/, 'DTSTAMP:');
   assert.equal(noStamp(shipped), noStamp(buildIcs(EVENT)));
 });
@@ -148,7 +148,7 @@ test('buildIcs: every content line is at most 75 octets (RFC 5545 3.1)', () => {
 
 test('the shipped .ics file has no line over 75 octets', async () => {
   const { readFileSync } = await import('node:fs');
-  const shipped = readFileSync(new URL('../assets/karan-soumya-engagement.ics', import.meta.url), 'utf8');
+  const shipped = readFileSync(new URL('../assets/karan-sowmya-engagement.ics', import.meta.url), 'utf8');
   for (const line of shipped.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, line);
 });
 

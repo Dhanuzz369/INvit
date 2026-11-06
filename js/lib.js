@@ -1,5 +1,5 @@
 export const EVENT = {
-  title: 'Karan & Soumya Engagement',
+  title: 'Karan & Sowmya Manjunath Engagement',
   startUtc: '20261115T053000Z',
   endUtc: '20261115T083000Z',
   location:
@@ -65,7 +65,7 @@ export function countdown(now, event = EVENT) {
 export function shareMessage(link, name = '') {
   const n = cleanName(name);
   return (
-    `${n ? `Dear ${n}, ` : ''}Karan & Soumya are getting engaged on Sunday, 15 November 2026, ` +
+    `${n ? `Dear ${n}, ` : ''}Karan & Sowmya Manjunath are getting engaged on Sunday, 15 November 2026, ` +
     `at 11 in the morning, at Udupi Aatithya, Chamrajpet, Bengaluru. Your invitation: ${link}`
   );
 }
@@ -93,7 +93,7 @@ export function buildIcs(event) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Karan and Soumya//Engagement Invitation//EN',
+    'PRODID:-//Karan and Sowmya Manjunath//Engagement Invitation//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
     // the UID stays as first published, so a calendar that already holds the

@@ -4,7 +4,7 @@ import { initJourney } from './journey.js';
 import { prepareProposal, initProposal, stopProposal } from './proposal.js';
 import { initLive } from './live.js';
 
-// Calendar links point at the static assets/karan-soumya-engagement.ics
+// Calendar links point at the static assets/karan-sowmya-engagement.ics
 // (written from js/lib.js by `npm run build:ics`), so they work without JS.
 
 const root = document.documentElement;

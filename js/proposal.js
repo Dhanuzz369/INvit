@@ -47,7 +47,7 @@ const B = {
 const SHIMMER = 2.6; // seconds per shimmer on the stone during the hold
 const ZOOM = 0.04; // the push-in: scale 1 -> 1.04 about the portrait's transform-origin (54% 28%)
 
-// The portrait, in its own pixels (assets/karan-soumya-portrait.*, 1024 x 1536)
+// The portrait, in its own pixels (assets/karan-sowmya-portrait.*, 1024 x 1536)
 const NATURAL = { width: 1024, height: 1536 };
 const FINGER = { x: 568, y: 1426 }; // her ring finger, nearest Karan, where a gold ring already sits
 const FINGER_R = 15; // the solitaire's outer radius on her finger (picture px): just covers her own band
