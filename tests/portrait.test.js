@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { coverPoint, objectPositionFractions } from '../js/lib.js';
+import { coverPoint, fitPoint, objectPositionFractions } from '../js/lib.js';
 
 const near = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) < eps, `${a} != ${b}`);
 const PORTRAIT = { width: 1024, height: 1536 };
@@ -77,4 +77,39 @@ test('objectPositionFractions reads computed object-position percentages', () =>
   assert.deepEqual(objectPositionFractions(''), { x: 0.5, y: 0.5 });
   assert.deepEqual(objectPositionFractions('left top'), { x: 0, y: 0 });
   assert.deepEqual(objectPositionFractions('center bottom'), { x: 0.5, y: 1 });
+});
+
+// --- fitPoint with contain: the whole portrait, as the page now shows it -------------
+
+test('fitPoint contain: a 2:3 box shows the whole picture, corner to corner', () => {
+  const box = { left: 24, top: 210, width: 312, height: 468 };
+  const tl = fitPoint({ x: 0, y: 0 }, PORTRAIT, box);
+  const br = fitPoint({ x: 1024, y: 1536 }, PORTRAIT, box);
+  near(tl.x, 24); near(tl.y, 210);
+  near(br.x, 336); near(br.y, 678);
+  near(tl.scale, 312 / 1024);
+});
+
+test('fitPoint contain: a box off the 2:3 shape letterboxes instead of cropping', () => {
+  // 1px too wide: the picture keeps its height and centres, nothing is cut
+  const box = { left: 0, top: 0, width: 313, height: 468 };
+  const s = 468 / 1536;
+  const tl = fitPoint({ x: 0, y: 0 }, PORTRAIT, box);
+  near(tl.scale, s);
+  near(tl.x, (313 - 1024 * s) / 2);
+  near(tl.y, 0);
+  // cover would have cropped the top instead
+  assert.ok(coverPoint({ x: 0, y: 0 }, PORTRAIT, box).y < 0);
+});
+
+test('fitPoint contain + the push-in: both heads stay in the frame, the ring finger too', () => {
+  const box = { left: 0, top: 0, width: 312, height: 468 };
+  const origin = { x: 0.54 * 312, y: 0.28 * 468 }; // css transform-origin 54% 28%
+  const zoom = { scale: 1.04, origin };
+  const at = (x, y) => fitPoint({ x, y }, PORTRAIT, box, undefined, zoom);
+  const inside = (p) => p.x >= 0 && p.x <= box.width && p.y >= 0 && p.y <= box.height;
+  // Karan's crown (about 600, 25), Soumya's crown (about 250, 300), her jasmine (40, 650)
+  for (const [x, y] of [[600, 25], [250, 300], [40, 650], [900, 300]]) assert.ok(inside(at(x, y)), `${x},${y}`);
+  // the ring finger and the ring on it (radius 15 picture px)
+  assert.ok(inside(at(568, 1426 + 15)));
 });

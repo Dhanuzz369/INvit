@@ -3,19 +3,21 @@ import {
   getHandsStagePose, getJourneyEnd, getVirtualScroll, handOffRings, redrawJourney, setHandsRest, setPinLength,
 } from './journey.js';
 import {
-  segmentT, EASE_MOVE, EASE_OUT, ringOwner, collapsePin, coverPoint, objectPositionFractions,
+  segmentT, EASE_MOVE, EASE_OUT, ringOwner, collapsePin, fitPoint, objectPositionFractions,
 } from './lib.js';
+import { createBurst } from './burst.js';
 
 // 7.5 The proposal, on the couple's own portrait. #proposal pins the moment
 // the ring journey ends (its top at the viewport top, the linked pair resting
 // on the bouquet at #ring-anchor-hands) and one scrubbed timeline plays:
 //
-//   a slow push-in on the portrait  ->  the pair settles and parts (her ring
-//   lifts above her hand; his band drifts to Karan's side and fades, tucked
-//   away)  ->  her ring glides down onto her ring finger, shrinking to finger
-//   size  ->  a glint, then a soft shimmer that stays  ->  jasmine and rose
-//   petals drift  ->  "Will you, Swathi?" gives way to "She said yes"  ->  the
-//   visit card (#venue) is laid over the portrait: over its right side on wide
+//   a slow, small push-in on the portrait (anchored high, so both heads stay
+//   inside the frame)  ->  the pair settles and parts (her ring lifts above
+//   her hand; his band drifts to Karan's side and fades, tucked away)  ->  her
+//   ring glides down onto her ring finger, shrinking to finger size  ->  a
+//   glint, then a soft shimmer that stays, and red rose petals burst from her
+//   hand across the whole screen (js/burst.js, time based)  ->  "She said
+//   yes" appears (no title before)  ->  the visit card (#venue) is laid over the portrait: over its right side on wide
 //   screens, over its foot elsewhere (there mostly below the fold until the
 //   pin lets go, then fully in view as the page moves on).
 //
@@ -24,7 +26,7 @@ import {
 // position inside the pin, and ringOwner() hands the rings over at the same
 // lagged moment in both directions, so fast flicks never snap. Every beat is a
 // function of progress, so it all scrubs backwards exactly. Layout is read
-// only in measure() (every ScrollTrigger refresh); a frame is coverPoint()
+// only in measure() (every ScrollTrigger refresh); a frame is fitPoint()
 // arithmetic plus cached writes.
 
 const PIN_VH = 3; // pinned for 3 viewports of scroll
@@ -38,15 +40,14 @@ const B = {
   goldFade: [0.18, 0.34], // ... and fades there, tucked away
   travel: [0.3, 0.5], // her ring glides down onto her finger
   glint: [0.48, 0.58], // then a slow shimmer stays on the stone through the hold
-  petals: [0.48, 0.6], // petal start times spread over this window
+  burst: [0.49, 0.36], // the rose burst fires crossing 0.49 forwards; re-armed below 0.36
   yes: [0.56, 0.66], // "She said yes" rises in
   venue: [0.74, 0.88], // the visit card is laid over the portrait
 };
-const PETAL_LIFE = 0.2;
 const SHIMMER = 2.6; // seconds per shimmer on the stone during the hold
-const ZOOM = 0.08; // the push-in: scale 1 -> 1.08 about the portrait's transform-origin
+const ZOOM = 0.04; // the push-in: scale 1 -> 1.04 about the portrait's transform-origin (54% 28%)
 
-// The portrait, in its own pixels (assets/karan-swathi-portrait.*, 1024 x 1536)
+// The portrait, in its own pixels (assets/karan-soumya-portrait.*, 1024 x 1536)
 const NATURAL = { width: 1024, height: 1536 };
 const FINGER = { x: 568, y: 1426 }; // her ring finger, nearest Karan, where a gold ring already sits
 const FINGER_R = 15; // the solitaire's outer radius on her finger (picture px): just covers her own band
@@ -60,23 +61,12 @@ const SETTLE = 0.8; // the linked pair shrinks this much as it settles on the bo
 const LIFT = 22; // picture px: her ring rises in a small arc as they part
 const BOW = 14; // picture px: the glide down bows a little toward Karan
 
-const PETALS = 12;
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const lerp = (a, b, t) => a + (b - a) * t;
 const lerpPt = (a, b, t) => ({ x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) });
 const ease = (beat, p, fn = EASE_MOVE) => fn(segmentT(p, beat[0], beat[1]));
 const smooth = (t) => t * t * (3 - 2 * t);
 const zoomAt = (p) => 1 + ZOOM * smooth(segmentT(p, B.zoom[0], B.zoom[1]));
-
-// Small seeded PRNG: the petals fall the same way on every visit.
-function rng(seed) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const $ = (id) => document.getElementById(id);
 const parts = () => {
@@ -98,86 +88,17 @@ export function prepareProposal() {
     // no pin and no push-in under reduced motion: the frame's place in the document
     const f = frame.getBoundingClientRect();
     const box = { left: f.left, top: f.top + window.scrollY, width: f.width, height: f.height };
-    const pt = coverPoint(FINGER, NATURAL, box, objectPositionFractions(getComputedStyle(img).objectPosition));
+    const cs = getComputedStyle(img);
+    const pt = fitPoint(FINGER, NATURAL, box, objectPositionFractions(cs.objectPosition), undefined, cs.objectFit);
     const s = (pt.scale * FINGER_R) / RING_RADIUS;
     return { rose: { x: pt.x, y: pt.y, rotation: FINGER_TILT, scaleX: s * SQUASH, scaleY: s } };
   });
 }
 
-// --- Petals ------------------------------------------------------------------
-
-const NS = 'http://www.w3.org/2000/svg';
-const PETAL = {
-  jasmine: { d: 'M0 -6.5 C 3.4 -3.4, 3.4 3.4, 0 6.5 C -3.4 3.4, -3.4 -3.4, 0 -6.5 Z', fill: '#FFFDF6', stroke: '#A8865A', width: 1 },
-  rose: { d: 'M0 -6 C 5 -6.4, 7.2 -1.4, 5.2 2.8 C 3.6 6, -3.6 6, -5.2 2.8 C -7.2 -1.4, -5 -6.4, 0 -6 Z', fill: '#B3263A', stroke: '#7A1A28', width: 0.7 },
-};
-// Lanes as fractions of the frame, clear of both faces: down the left edge,
-// down the right edge, and over the bouquet (they appear below her chin).
-const LANES = [
-  { x: [0.02, 0.13], y0: [-0.16, -0.04], life: PETAL_LIFE },
-  { x: [0.9, 0.98], y0: [-0.16, -0.04], life: PETAL_LIFE },
-  { x: [0.1, 0.52], y0: [0.52, 0.6], life: PETAL_LIFE * 0.75 },
-];
-const LANE_OF = [0, 2, 1, 2, 0, 2, 1, 2, 0, 2, 1, 2];
-
-function makeFx(frame) {
-  const svg = document.createElementNS(NS, 'svg');
-  svg.setAttribute('class', 'proposal-fx');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('focusable', 'false');
-  const random = rng(1115);
-  const petals = [];
-  for (let i = 0; i < PETALS; i++) {
-    const kind = i % 2 ? PETAL.rose : PETAL.jasmine;
-    const g = document.createElementNS(NS, 'g');
-    const path = document.createElementNS(NS, 'path');
-    path.setAttribute('d', kind.d);
-    path.setAttribute('fill', kind.fill);
-    path.setAttribute('stroke', kind.stroke);
-    path.setAttribute('stroke-width', kind.width);
-    g.appendChild(path);
-    g.style.opacity = '0';
-    svg.appendChild(g);
-    const lane = LANES[LANE_OF[i]];
-    const x0 = lerp(lane.x[0], lane.x[1], random());
-    petals.push({
-      el: g,
-      start: lerp(B.petals[0], B.petals[1], random()),
-      life: lane.life,
-      x0,
-      y0: lerp(lane.y0[0], lane.y0[1], random()),
-      x1: Math.min(Math.max(x0 + (random() - 0.5) * 0.08, lane.x[0]), lane.x[1]),
-      y1: 1.06,
-      r0: random() * 360,
-      spin: (random() < 0.5 ? -1 : 1) * (140 + random() * 220),
-      sway: 0.008 + random() * 0.01, // of the frame's width
-      waves: 1.2 + random() * 1.3,
-      scale: 1 + random() * 0.5,
-      last: -1,
-    });
-  }
-  frame.appendChild(svg);
-  return { svg, petals };
-}
-
-// A petal at u (0..1 of its life) in frame px (w x h); size grows with the frame.
-function petalVars(pt, u, w, h) {
-  const fall = EASE_OUT(u) * 0.3 + u * 0.7; // a soft start, then a steady drift
-  const size = (w / 420) * pt.scale;
-  return {
-    x: (lerp(pt.x0, pt.x1, fall) + Math.sin(u * Math.PI * 2 * pt.waves) * pt.sway) * w,
-    y: lerp(pt.y0, pt.y1, fall) * h,
-    rotation: pt.r0 + pt.spin * u,
-    scaleX: size,
-    scaleY: size * (0.75 + 0.25 * Math.cos(u * Math.PI * 3 * pt.waves)), // turning as it falls
-    opacity: Math.min(segmentT(u, 0, 0.12), 1 - segmentT(u, 0.8, 1)),
-  };
-}
-
 // --- The three beats ----------------------------------------------------------
 
-// Which beat is playing at progress p: "The roses" while the question hangs,
-// "The ring" from the glide onto her finger, "The yes" once the title swaps.
+// Which beat is playing at progress p: "The roses" while the rings arrive,
+// "The ring" from the glide onto her finger, "The yes" once "She said yes" shows.
 export function beatAt(p) {
   if (p < B.travel[0]) return 0;
   return p < B.yes[0] ? 1 : 2;
@@ -191,7 +112,7 @@ function showBeat(list, i) {
 
 // Stops the scene for good (js/main.js calls it when the motion layer falls
 // back to the static page): leaves the ticker, stops observing, removes the
-// petals, and puts the portrait and the visit card back as the page has them.
+// rose burst, and puts the portrait and the visit card back as the page has them.
 let stopScene = null;
 export function stopProposal() {
   stopScene?.();
@@ -203,7 +124,8 @@ export function stopProposal() {
     visit.style.transform = '';
     visit.style.pointerEvents = '';
   }
-  showBeat([...document.querySelectorAll('#proposal .beat')], 0); // the static portrait: the question
+  const beats = [...document.querySelectorAll('#proposal .beat')];
+  showBeat(beats, beats.length - 1); // the static portrait: the answer
 }
 
 export function initProposal() {
@@ -214,8 +136,6 @@ export function initProposal() {
   // invisible (no aria-hidden toggling): a screen reader reading straight
   // through never scrubs the pin, so hiding it would mean never hearing it.
   const yes = $('proposal-yes');
-  // The question it answers shares its place and gives way to it.
-  const ask = section?.querySelector('.proposal__ask');
   // The three beats beside the portrait: the one playing carries the diamond.
   const beats = [...(section?.querySelectorAll('.beat') || [])];
   if (!gsap || !ST || !section || !img || !frame || !visit || !yes) return;
@@ -224,14 +144,13 @@ export function initProposal() {
     // Static finale: the ring is on her finger (placed by the journey's hands
     // rest), "She said yes", the visit card in its place. No pin, no push-in.
     gsap.set(yes, { opacity: 1 });
-    if (ask) gsap.set(ask, { opacity: 0 });
     showBeat(beats, beats.length - 1);
     return;
   }
 
-  const fx = makeFx(frame);
-  fx.petals.forEach((o) => (o.set = gsap.quickSetter(o.el, 'css')));
-  gsap.set(fx.petals.map((o) => o.el), { svgOrigin: '0 0' });
+  const burst = createBurst(gsap);
+  let armed = true; // the burst fires once per crossing of the landing
+  showBeat(beats, 0);
 
   const rose = $('ring-rose');
   const gold = $('ring-gold');
@@ -243,7 +162,6 @@ export function initProposal() {
   const setLink = ringSetter(link);
   const setSpark = ringSetter(spark);
   const setYes = gsap.quickSetter(yes, 'css');
-  const setAsk = ask ? gsap.quickSetter(ask, 'css') : () => {};
   let beat = 0;
 
   let geo = null;
@@ -274,13 +192,13 @@ export function initProposal() {
     const [ox, oy] = cs.transformOrigin.split(' ').map(parseFloat);
     const box = { left: f.left, top: f.top - sec.top, width: f.width, height: f.height };
     const pos = objectPositionFractions(cs.objectPosition);
+    const fit = cs.objectFit;
     const origin = { x: ox || 0, y: oy || 0 };
     const hands = getHandsStagePose();
     const centre = { x: (hands.rose.x + hands.gold.x) / 2, y: (hands.rose.y + hands.gold.y) / 2 };
-    fx.svg.setAttribute('viewBox', `0 0 ${f.width} ${f.height}`);
     return {
       // a point of the picture in stage px (section top at the viewport top) at push-in k
-      at: (pt, k) => coverPoint(pt, NATURAL, box, pos, { scale: k, origin }),
+      at: (pt, k) => fitPoint(pt, NATURAL, box, pos, { scale: k, origin }, fit),
       centre,
       half: hands.gold.x - centre.x, // half the linked pair's spread at scale 1
       w: f.width,
@@ -290,7 +208,7 @@ export function initProposal() {
     };
   }
 
-  // The portrait, title, beats, petals and visit card: a function of progress only.
+  // The portrait, title, beats and visit card: a function of progress only.
   function renderScene(p) {
     if (p === lastScene) return;
     lastScene = p;
@@ -301,15 +219,8 @@ export function initProposal() {
     }
     const said = ease(B.yes, p, EASE_OUT); // rise 32px + fade, scrubbed
     setYes({ opacity: said, y: 32 * (1 - said) });
-    setAsk({ opacity: 1 - said, y: -16 * said }); // the question steps up and away
     const now = beatAt(p);
     if (now !== beat) showBeat(beats, (beat = now));
-    for (const pt of fx.petals) {
-      const u = segmentT(p, pt.start, pt.start + pt.life);
-      if (u === pt.last) continue;
-      pt.last = u;
-      pt.set(u > 0 && u < 1 ? petalVars(pt, u, geo.w, geo.h) : { opacity: 0 });
-    }
     // the visit card is laid over the portrait: rises 48px and fades in, scrubbed
     const v = ease(B.venue, p, EASE_OUT);
     if (v !== lastVenue) {
@@ -490,7 +401,7 @@ export function initProposal() {
     running = true; // wake() never adds it again
     venueLinks.forEach((a) => a.removeEventListener('click', toVenue));
     visit.removeEventListener('focusin', onFocus);
-    fx.svg.remove();
+    burst.remove();
   };
 
   function tick(time) {
@@ -520,6 +431,15 @@ export function initProposal() {
     // the page offset: 0 while pinned, moving with the page before and after
     const dy = trigger.start - collapsePin(trigger.scroll(), trigger.start, trigger.end - trigger.start);
     renderRings(p, dy, time);
+    // The ring is on: roses burst from her hand (once per crossing, forwards
+    // only, and not when a jump lands past the whole scene).
+    if (armed && p >= B.burst[0] && p < B.venue[0]) {
+      armed = false;
+      const r = ringPose(p).rose;
+      burst.fire(r.x, r.y + dy);
+    } else if (!armed && p < B.burst[1]) {
+      armed = true;
+    }
   }
   wake();
   ST.refresh();
