@@ -1,5 +1,5 @@
 export const EVENT = {
-  title: 'Karan & Swathi Engagement',
+  title: 'Karan & Soumya Engagement',
   startUtc: '20261115T053000Z',
   endUtc: '20261115T083000Z',
   location:
@@ -14,7 +14,7 @@ export function directionsUrl(lat, lng) {
 
 // --- The live invitation: the guest's name, the countdown, personal links ---
 
-export const SITE_URL = 'https://karan-swathi.vercel.app/';
+export const SITE_URL = 'https://karan-swathi.vercel.app/'; // the deployed address (unchanged)
 const NAME_MAX = 60; // characters, enough for "Ananya, Rohit & the children"
 
 // A guest's name as it may be written on the envelope: control characters,
@@ -65,7 +65,7 @@ export function countdown(now, event = EVENT) {
 export function shareMessage(link, name = '') {
   const n = cleanName(name);
   return (
-    `${n ? `Dear ${n}, ` : ''}Karan & Swathi are getting engaged on Sunday, 15 November 2026, ` +
+    `${n ? `Dear ${n}, ` : ''}Karan & Soumya are getting engaged on Sunday, 15 November 2026, ` +
     `at 11 in the morning, at Udupi Aatithya, Chamrajpet, Bengaluru. Your invitation: ${link}`
   );
 }
@@ -93,9 +93,11 @@ export function buildIcs(event) {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Karan and Swathi//Engagement Invitation//EN',
+    'PRODID:-//Karan and Soumya//Engagement Invitation//EN',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
+    // the UID stays as first published, so a calendar that already holds the
+    // event updates it (new name) instead of adding a second one
     `UID:${event.startUtc}-karan-swathi-engagement@invitation`,
     `DTSTAMP:${stamp}`,
     `DTSTART:${event.startUtc}`,
@@ -243,12 +245,16 @@ export function textProximity(x, y, r, rects, feather) {
 
 // Where a point of a picture lands on screen. The picture (natural size
 // { width, height } in its own px) fills `box` ({ left, top, width, height },
-// screen px, untransformed) with object-fit: cover at object-position `pos`
-// (fractions, { x, y }), and is then scaled by zoom.scale about zoom.origin
-// (px from the box's top left: its transform-origin). Returns the screen
-// point and `scale`, screen px per picture px.
-export function coverPoint(pt, natural, box, pos = { x: 0.5, y: 0.5 }, zoom = { scale: 1, origin: { x: 0, y: 0 } }) {
-  const s = Math.max(box.width / natural.width, box.height / natural.height);
+// screen px, untransformed) with object-fit `fit` ('contain': all of it
+// shows, letterboxed if the shapes differ; 'cover': it fills the box,
+// cropped) at object-position `pos` (fractions, { x, y }), and is then scaled
+// by zoom.scale about zoom.origin (px from the box's top left: its
+// transform-origin). Returns the screen point and `scale`, screen px per
+// picture px.
+export function fitPoint(pt, natural, box, pos = { x: 0.5, y: 0.5 }, zoom = { scale: 1, origin: { x: 0, y: 0 } }, fit = 'contain') {
+  const sx = box.width / natural.width;
+  const sy = box.height / natural.height;
+  const s = fit === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
   const ox = (box.width - natural.width * s) * pos.x;
   const oy = (box.height - natural.height * s) * pos.y;
   const k = zoom.scale;
@@ -259,6 +265,9 @@ export function coverPoint(pt, natural, box, pos = { x: 0.5, y: 0.5 }, zoom = { 
     scale: s * k,
   };
 }
+
+// The same for object-fit: cover.
+export const coverPoint = (pt, natural, box, pos, zoom) => fitPoint(pt, natural, box, pos, zoom, 'cover');
 
 // A computed object-position ('50% 85%', 'left top') as fractions { x, y }.
 const KEYWORD = { left: 0, top: 0, center: 0.5, right: 1, bottom: 1 };

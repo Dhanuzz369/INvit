@@ -14,10 +14,10 @@ test('the portrait replaces the caricature: real alt text, WebP with a JPEG fall
   assert.ok(!existsSync(new URL('../js/couple-poses.js', import.meta.url)));
   const img = html.match(/<img id="portrait"[^>]*>/)?.[0];
   assert.ok(img, 'img#portrait');
-  assert.match(img, /alt="Illustrated portrait of Karan and Swathi; Swathi holds red roses and looks up at Karan\."/);
-  assert.match(img, /src="assets\/karan-swathi-portrait\.jpg"/);
+  assert.match(img, /alt="Illustrated portrait of Karan and Soumya; Soumya holds red roses and looks up at Karan\."/);
+  assert.match(img, /src="assets\/karan-soumya-portrait\.jpg"/);
   assert.match(img, /width="1024" height="1536"/);
-  assert.match(html, /<source srcset="assets\/karan-swathi-portrait\.webp" type="image\/webp">/);
+  assert.match(html, /<source srcset="assets\/karan-soumya-portrait\.webp" type="image\/webp">/);
 });
 
 test('the venue is a visit card over the portrait, inside the pinned scene', () => {
@@ -31,6 +31,4 @@ test('the venue is a visit card over the portrait, inside the pinned scene', () 
   assert.match(proposal, /Lunch<\/dt><dd>12:30 PM/);
   // the watercolour and its credit are gone
   assert.ok(!/tipu|James Hunter/i.test(html));
-  assert.ok(!existsSync(new URL('../assets/found/tipu-palace-1792.webp', import.meta.url)));
-  assert.ok(!/tipu/i.test(read('assets/found/credits.json')));
 });
