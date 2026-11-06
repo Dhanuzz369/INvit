@@ -61,11 +61,16 @@ test('only the couple\'s portrait and our own drawings: no found pictures, no cr
   assert.deepEqual(imgs, ['assets/karan-sowmya-portrait.jpg']);
 });
 
-test('the programme: lunch is a plain row with its time; no dress code anywhere', () => {
-  const lunch = html.match(/<div class="detail-row bar bar--plain[^"]*">[\s\S]*?<\/div>/)?.[0];
+test('the programme: welcome and lunch are plain rows with their times; no dress code anywhere', () => {
+  const plain = [...html.matchAll(/<div class="detail-row bar bar--plain[^"]*">[\s\S]*?<\/div>/g)].map((m) => m[0]);
+  const welcome = plain.find((r) => r.includes('>Welcome<'));
+  const lunch = plain.find((r) => r.includes('Udupi lunch'));
+  assert.ok(welcome, 'plain welcome row');
+  assert.match(welcome, /Welcome<\/span><span class="bar__time">10:30/);
+  assert.ok(!/panaka|kumkum/.test(html), 'the welcome line is gone');
   assert.ok(lunch, 'plain lunch row');
   assert.match(lunch, /Udupi lunch<\/span><span class="bar__time">12:30/);
-  assert.ok(!/bar__plus|<details|menu/.test(lunch));
+  for (const r of [welcome, lunch]) assert.ok(!/bar__plus|<details|menu/.test(r));
   assert.ok(!/What to wear|Indo western|dress code|\bdress\b|traditional wear/i.test(html));
   assert.ok(!/class="menu"/.test(html));
 });
