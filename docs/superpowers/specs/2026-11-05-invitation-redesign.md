@@ -105,3 +105,6 @@ No eyebrows, no tracked tiny caps, no hairlines/1px outlined boxes, no shadows a
 
 ## Gate and look
 `node $SK/scripts/lint.mjs index.html css js` · `node $SK/scripts/inspect.mjs index.html` → zero FAILs; WARNs fixed or defended. Then critique the screenshots with `$SK/references/critique.md` (three rounds max), plus our own checks: open the envelope and scroll the whole story at 390x844 and 1440x900 (journey, card landing, proposal, venue, curtain footer), `npm test`.
+
+## Addendum, 6 November 2026: the portrait
+The couple sent their own illustrated portrait (`assets/karan-swathi-portrait.webp` / `.jpg`). It replaces the caricature: the pinned scene is now the portrait, mounted on a paper mat with scooped corners on an ink ground; the rings arrive on the bouquet and the rose gold solitaire glides onto Swathi's ring finger (picture px 568, 1426) during a slow push-in, then the visit card is laid over the portrait. The separate venue section and the Tipu Sultan watercolour are gone. Contracts: `#couple-stage` and `#couple-svg` are retired; the scene uses `#portrait` (the img), `#venue` (the visit card, now inside `#proposal`), `#ring-anchor-hands` (on the bouquet), `#proposal-yes`, `#directions`, `#add-calendar`, `[data-ics]`. Details: `.taste-skill/portrait-report.md`.

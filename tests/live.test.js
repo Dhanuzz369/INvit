@@ -120,9 +120,10 @@ test('every sample item awaiting the couple is marked in the markup', () => {
 
 test('beatAt: one knee, then the ring, then the yes', () => {
   assert.equal(beatAt(0), 0);
-  assert.equal(beatAt(0.3), 0);
+  assert.equal(beatAt(0.2), 0); // the rings arrive and part
+  assert.equal(beatAt(0.35), 1); // hers glides onto her finger
   assert.equal(beatAt(0.5), 1);
-  assert.equal(beatAt(0.7), 1);
-  assert.equal(beatAt(0.8), 2);
+  assert.equal(beatAt(0.6), 2); // "She said yes"
+  assert.equal(beatAt(0.85), 2); // the visit card is laid over the portrait
   assert.equal(beatAt(1), 2);
 });

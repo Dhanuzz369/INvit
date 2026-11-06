@@ -399,402 +399,10 @@
       </div>
     </section>
 
-    <!-- The proposal: a square plate and spare text, pinned while it plays -->
+    <!-- The proposal: the couple's own portrait, mounted like the invitation
+         card and pinned while the ring finds Swathi's finger (js/proposal.js);
+         then the visit card is laid over the portrait. -->
     <section id="proposal" class="section section--proposal" aria-labelledby="proposal-title">
-      <div class="proposal__plate">
-        <!-- the label describes what is shown: the static page has them standing
-             hand in hand; js/proposal.js swaps in data-label-motion once the
-             scene (kneel, ring on her finger) can play -->
-        <div id="couple-stage" class="couple-stage" role="img"
-             aria-label="Karan and Swathi stand together, holding hands"
-             data-label-static="Karan and Swathi stand together, holding hands"
-             data-label-motion="Karan kneels and places the ring on Swathi's finger">
-          <!-- inlined from assets/couple.svg (source of truth); poses in js/couple-poses.js -->
-        <svg id="couple-svg" class="couple-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" aria-hidden="true" focusable="false">
-          <!--
-            Karan & Swathi, drawn from scratch (style reference: spec 11c).
-            Units: SVG user units of this 400 x 500 viewBox. Ground line y = 480.
-            Every limb is drawn hanging straight down in its own local frame and posed
-            by a static inner rotate(); the animated groups (ids) carry no transform,
-            so GSAP owns them. Pivots below are in each animated group's own local
-            (pre transform) coordinates: pass them to GSAP as svgOrigin.
-          -->
-          <g fill="none" stroke="#2B211D" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
-
-            <!-- soft ground shadows -->
-            <g id="couple-shadows" stroke="none" fill="#B76E79" opacity="0.14">
-              <ellipse cx="112" cy="480" rx="62" ry="6"/>
-              <ellipse cx="305" cy="480" rx="86" ry="7"/>
-            </g>
-
-            <!-- ================================================================ GROOM -->
-            <g id="groom">
-
-              <!-- BACK LEG. #groom-leg-back: hip pivot 88 282 (translate with torso).
-                   #groom-leg-back-upper: hip pivot 88 282. #groom-leg-back-lower: knee pivot 88 372.
-                   #groom-foot-back: ankle pivot 88 462. -->
-              <g id="groom-leg-back">
-                <g id="groom-leg-back-upper">
-                  <g id="groom-leg-back-lower">
-                    <g id="groom-foot-back">
-                      <path fill="#C9A66B" d="M78,458 C77,470 78,478 84,479 L112,479 C121,479 125,473 124,466 C128,464 129,460 126,457 C123,462 117,463 110,462 C102,458 95,456 92,456 Z"/>
-                      <path fill="none" stroke="#A88848" stroke-width="1.5" d="M84,470 L114,470"/>
-                    </g>
-                    <path fill="#EADCC2" d="M77,372 A11,11 0 0 1 99,372 L96,460 L80,460 Z"/>
-                    <path stroke="#CDBB98" stroke-width="1.4" d="M81,436 Q88,439 95,436 M81,444 Q88,447 95,444 M81,452 Q88,455 95,452"/>
-                  </g>
-                  <path fill="#EADCC2" d="M74,266 L102,266 L99,372 A11,11 0 0 1 77,372 Z"/>
-                </g>
-              </g>
-
-              <!-- FRONT LEG (bride side). #groom-leg-front: hip pivot 114 282.
-                   #groom-leg-front-upper: hip pivot 114 282. #groom-leg-front-lower: knee pivot 114 372.
-                   #groom-foot-front: ankle pivot 114 462. -->
-              <g id="groom-leg-front">
-                <g id="groom-leg-front-upper">
-                  <g id="groom-leg-front-lower">
-                    <g id="groom-foot-front">
-                      <path fill="#C9A66B" d="M104,458 C103,470 104,478 110,479 L140,479 C149,479 153,473 152,466 C156,464 157,460 154,457 C151,462 145,463 138,462 C130,458 122,456 118,456 Z"/>
-                      <path fill="none" stroke="#A88848" stroke-width="1.5" d="M110,470 L142,470"/>
-                      <circle cx="128" cy="465" r="1.6" fill="#FFF3D6" stroke="none"/>
-                    </g>
-                    <path fill="#F1E6D0" d="M103,372 A11,11 0 0 1 125,372 L122,460 L106,460 Z"/>
-                    <path fill="#DCCDB0" stroke="none" d="M118,376 L124,376 L121,458 L115,458 Z"/>
-                    <path stroke="#CDBB98" stroke-width="1.4" d="M107,436 Q114,439 121,436 M107,444 Q114,447 121,444 M107,452 Q114,455 121,452"/>
-                  </g>
-                  <path fill="#F1E6D0" d="M98,266 L130,266 C131.5,296 129.5,334 125,366 L125,372 A11,11 0 0 1 103,372 L103,366 C100,334 97.5,298 98,266 Z"/>
-                  <path fill="#DCCDB0" stroke="none" d="M121.5,270 L128.6,270 C129.6,298 127.8,334 123.6,368 L118.2,368 C121.2,336 122.5,300 121.5,270 Z"/>
-                  <path stroke="#CDBB98" stroke-width="1.4" d="M106,352 Q113,356 121,350 M108,360 Q114,363 120,359"/>
-                </g>
-              </g>
-
-              <!-- TORSO: sherwani, collar, dupatta. Pivot (waist) 100 270. -->
-              <g id="groom-torso">
-                <!-- neck -->
-                <path fill="#C98F6B" d="M90,150 L90,192 L111,192 L111,150 Z"/>
-                <path fill="#A9724F" stroke="none" d="M90,160 Q101,174 111,160 L111,172 Q101,182 90,172 Z"/>
-                <!-- sherwani -->
-                <g id="groom-sherwani">
-                  <!-- #groom-skirt: the flared lower half. Pivot (waist) 100 270; skewX drapes it over the knee. -->
-                  <g id="groom-skirt">
-                    <path fill="#F6EEDF" d="M69,262 L131,262 C136,302 143,344 148,379 Q102,389 56,379 C61,344 66,302 69,262 Z"/>
-                    <path fill="#E4D6BE" stroke="none" d="M126,268 C131,304 137,344 141,382 L147,380 C142,344 136,302 131,266 Z"/>
-                    <path fill="#E4D6BE" stroke="none" d="M69,268 C68,300 63,344 58,379 L64,380 C68,344 73,300 75,268 Z"/>
-                    <path stroke="#D8C7A8" stroke-width="1.5" d="M84,290 Q80,330 76,368 M122,290 Q127,330 131,368"/>
-                    <path fill="#C9A66B" d="M58,366 Q102,375 146,366 L148,379 Q102,389 56,379 Z"/>
-                    <path stroke="#F3DFAE" stroke-width="1.2" stroke-dasharray="1.5 4" d="M60,374 Q102,382 145,373"/>
-                    <path stroke="#D2BF9C" stroke-width="1.5" d="M106,272 L107,366"/>
-                  </g>
-                  <!-- bodice -->
-                  <path fill="#F6EEDF" d="M92,187 L109,187 C121,189 134,194 137,207 C139,232 134,252 132,272 Q100,279 68,272 C66,252 61,232 63,207 C66,194 80,189 92,187 Z"/>
-                  <path fill="#E4D6BE" stroke="none" d="M126,200 C134,206 136,214 135,228 C133,248 129,258 128,274 L131.5,273 C134,252 138,232 137,208 C135,201 131,199 126,200 Z"/>
-                  <path fill="#E4D6BE" stroke="none" d="M66,206 C64,230 68,250 69,272 L74,273 C73,250 70,228 72,204 Z"/>
-                  <!-- front opening and gold buttons -->
-                  <path stroke="#D2BF9C" stroke-width="1.5" d="M104,196 L105.8,274"/>
-                  <g fill="#C9A66B" stroke="#8C6A35" stroke-width="1">
-                    <circle cx="104.3" cy="203" r="2.6"/>
-                    <circle cx="104.6" cy="216" r="2.6"/>
-                    <circle cx="104.9" cy="229" r="2.6"/>
-                    <circle cx="105.2" cy="242" r="2.6"/>
-                    <circle cx="105.5" cy="255" r="2.6"/>
-                    <circle cx="105.8" cy="268" r="2.6"/>
-                  </g>
-                  <!-- pocket and pocket square -->
-                  <path fill="#B76E79" stroke-width="1.8" d="M114,224 L117,215 L120,220 L123,213 L126,219 L128,223 Z"/>
-                  <path stroke-width="1.8" d="M112,224 L130,222"/>
-                </g>
-                <!-- mandarin collar -->
-                <path fill="#E9D3A0" d="M88,181 L113,181 L114,193 Q101,198 87,193 Z"/>
-                <path stroke="#B8945A" stroke-width="1.2" d="M89,186 Q101,189 113,186"/>
-                <path stroke-width="1.8" d="M101,183 L101,195"/>
-                <!-- dupatta over the left shoulder, falling down the front -->
-                <path fill="#C9A66B" d="M70,197 C80,191 90,194 93,203 C89,240 87,300 89,348 L73,355 C70,300 70,242 70,197 Z"/>
-                <path fill="#B8945A" stroke="none" d="M86,206 C83,250 82,300 84,350 L89,348 C87,300 89,240 92,205 Z"/>
-                <g fill="#F3DFAE" stroke="none">
-                  <circle cx="79" cy="226" r="1.4"/><circle cx="80" cy="252" r="1.4"/><circle cx="79" cy="278" r="1.4"/>
-                  <circle cx="80" cy="304" r="1.4"/><circle cx="80" cy="330" r="1.4"/>
-                </g>
-                <path stroke="#8C6A35" stroke-width="1.4" d="M75,355 L74,362 M79,353 L79,361 M83,352 L84,359 M87,350 L88,357"/>
-              </g>
-
-              <!-- LEFT ARM (far side). #groom-arm-l: shoulder pivot 70 204.
-                   #groom-forearm-l: elbow pivot 70 252. -->
-              <g id="groom-arm-l">
-                <g transform="rotate(8 70 204)">
-                  <g id="groom-forearm-l">
-                    <g transform="rotate(-4 70 252)">
-                      <path fill="#C98F6B" d="M61,300 C58,312 61,322 69,323 C77,324 81,316 80,300 Z"/>
-                      <path fill="#C98F6B" d="M78,304 C84,306 85,312 80,315"/>
-                      <path fill="#F6EEDF" d="M59,252 L81,252 L80,300 L60,300 Z"/>
-                      <path fill="#C9A66B" d="M59,292 L81,292 L80,302 L60,302 Z"/>
-                    </g>
-                  </g>
-                  <path fill="#F6EEDF" d="M57,210 C56,196 84,196 83,210 L82,254 A11,11 0 0 1 58,254 Z"/>
-                  <path fill="#E4D6BE" stroke="none" d="M59,212 L63,212 L63,256 L59,254 Z"/>
-                </g>
-                <!-- dupatta fold over the shoulder -->
-                <path fill="#C9A66B" d="M92,193 C80,187 63,190 58,204 C56,211 57,218 59,223 L67,222 C66,213 71,205 90,204 Z"/>
-                <path stroke="#A88848" stroke-width="1.4" d="M86,197 C76,196 66,200 63,210"/>
-              </g>
-
-              <!-- HEAD. #groom-head: neck pivot 100 168. -->
-              <g id="groom-head">
-                <g transform="translate(101 124)">
-                  <!-- back hair mass -->
-                  <path fill="#3B2A22" d="M-38,0 C-46,-34 -26,-60 2,-60 C30,-61 46,-38 40,0 C36,-6 -34,-6 -38,0 Z"/>
-                  <!-- ear -->
-                  <path fill="#C98F6B" d="M-30,-6 C-42,-12 -46,8 -36,14 C-33,16 -30,14 -29,12 Z"/>
-                  <path stroke="#A9724F" stroke-width="1.6" d="M-36,-2 Q-40,4 -35,9"/>
-                  <!-- face -->
-                  <path fill="#C98F6B" d="M-33,-24 C-36,6 -26,36 3,42 C24,40 37,20 36,-24 C36,-48 -33,-48 -33,-24 Z"/>
-                  <!-- stubble -->
-                  <path fill="#5A3B2C" stroke="none" opacity="0.2" d="M-30,8 C-26,30 -10,42 3,42 C22,40 33,26 34,8 C28,22 20,24 14,24 C10,30 -4,30 -8,24 C-16,24 -24,20 -30,8 Z"/>
-                  <!-- cheeks -->
-                  <ellipse cx="-19" cy="16" rx="7" ry="4" fill="#E0796C" stroke="none" opacity="0.5"/>
-                  <ellipse cx="26" cy="16" rx="6" ry="4" fill="#E0796C" stroke="none" opacity="0.5"/>
-                  <!-- eyes -->
-                  <g>
-                    <ellipse cx="-11" cy="1" rx="7.5" ry="9" fill="#FFFFFF" stroke-width="1.6"/>
-                    <ellipse cx="-9.5" cy="2.5" rx="5.6" ry="7" fill="#4A2A18" stroke="none"/>
-                    <ellipse cx="-9.5" cy="3" rx="3" ry="3.8" fill="#1E120C" stroke="none"/>
-                    <circle cx="-11.5" cy="-0.5" r="2.3" fill="#FFFFFF" stroke="none"/>
-                    <circle cx="-7.4" cy="6" r="1" fill="#FFFFFF" stroke="none"/>
-                    <path stroke-width="3" d="M-19,-3 Q-11,-11 -3,-4"/>
-                  </g>
-                  <g>
-                    <ellipse cx="17" cy="1" rx="7" ry="9" fill="#FFFFFF" stroke-width="1.6"/>
-                    <ellipse cx="18.5" cy="2.5" rx="5.3" ry="7" fill="#4A2A18" stroke="none"/>
-                    <ellipse cx="18.5" cy="3" rx="2.9" ry="3.8" fill="#1E120C" stroke="none"/>
-                    <circle cx="16.6" cy="-0.5" r="2.2" fill="#FFFFFF" stroke="none"/>
-                    <circle cx="20.6" cy="6" r="1" fill="#FFFFFF" stroke="none"/>
-                    <path stroke-width="3" d="M10,-4 Q17,-11 25,-3"/>
-                  </g>
-                  <!-- brows -->
-                  <path stroke="#2E1F18" stroke-width="3.6" d="M-20,-14 Q-12,-19 -4,-15"/>
-                  <path stroke="#2E1F18" stroke-width="3.6" d="M10,-15 Q18,-19 26,-14"/>
-                  <!-- nose -->
-                  <path stroke="#8F5E42" stroke-width="2" d="M5,8 Q9,14 4,16"/>
-                  <!-- smile -->
-                  <path fill="#7A2E2E" stroke-width="2" d="M-5,22 Q5,24 15,21 Q12,32 4,32 Q-3,31 -5,22 Z"/>
-                  <path fill="#FFFFFF" stroke="none" d="M-3,23 Q5,25 13,22 L12,25 Q5,27 -2,25 Z"/>
-                  <!-- tousled hair, swept toward the bride -->
-                  <path fill="#3B2A22" d="M-38,-2 C-47,-20 -45,-44 -31,-56 C-27,-69 -10,-75 2,-70 C12,-79 31,-75 37,-62 C47,-56 51,-40 45,-26 C47,-16 43,-8 39,-3 C37,-13 33,-20 28,-22 C28,-16 24,-12 18,-11 C21,-17 19,-24 12,-27 C9,-19 1,-15 -7,-16 C-2,-20 -3,-26 -8,-29 C-14,-21 -23,-15 -32,-13 C-34,-9 -36,-6 -38,-2 Z"/>
-                  <path stroke="#634638" stroke-width="2.2" d="M-30,-38 Q-20,-54 -2,-56 M8,-60 Q24,-62 34,-50 M-34,-22 Q-30,-30 -22,-34 M30,-40 Q38,-34 40,-24"/>
-                  <!-- sideburn -->
-                  <path fill="#3B2A22" d="M-34,-14 L-28,-14 L-29,0 Z"/>
-                </g>
-              </g>
-
-              <!-- RIGHT ARM (bride side, holds the ring). #groom-arm-r: shoulder pivot 130 204.
-                   #groom-forearm-r: elbow pivot 130 252. #groom-hand-r: wrist pivot 130 300.
-                   #groom-ring-hold: ring centre in the fist. -->
-              <g id="groom-arm-r">
-                <g transform="rotate(-28 130 204)">
-                  <path fill="#F6EEDF" d="M117,210 C116,196 144,196 143,210 L142,254 A12,12 0 0 1 118,254 Z"/>
-                  <path fill="#E4D6BE" stroke="none" d="M137,212 L141,212 L141,254 L137,258 Z"/>
-                  <g id="groom-forearm-r">
-                    <g transform="rotate(-30 130 252)">
-                      <g id="groom-hand-r">
-                        <path fill="#C98F6B" d="M120,300 C117,312 120,323 129,324 C138,325 142,316 141,300 Z"/>
-                        <path fill="#C98F6B" d="M121,304 C114,307 114,315 121,317"/>
-                        <path stroke="#A9724F" stroke-width="1.4" d="M126,316 L132,316 M126,320 L131,320"/>
-                        <circle id="groom-ring-hold" cx="131" cy="323" r="1" fill="none" stroke="none"/>
-                      </g>
-                      <path fill="#F6EEDF" d="M118,252 A12,12 0 0 1 142,252 L141,300 L120,300 Z"/>
-                      <path fill="#E4D6BE" stroke="none" d="M136,254 L140,254 L139,296 L135,296 Z"/>
-                      <path fill="#C9A66B" d="M119,292 L142,292 L141,302 L120,302 Z"/>
-                    </g>
-                  </g>
-                </g>
-              </g>
-            </g>
-
-            <!-- ================================================================ BRIDE -->
-            <g id="bride">
-
-              <!-- back veil of the dupatta, behind everything else of hers -->
-              <g id="dupatta-back">
-                <path transform="translate(0 6)" fill="#EDBDB8" d="M268,110 C282,86 330,84 344,122 C352,160 356,240 360,330 C364,400 366,440 368,466 L348,468 C344,420 340,340 336,270 C332,200 316,150 300,126 Z"/>
-              </g>
-
-              <!-- long hair falling behind her shoulders. Follows #bride-head: neck pivot 301 192. -->
-              <g id="bride-hair-back">
-                <path fill="#2E211D" transform="translate(300 152)" d="M-36,-14 C-44,-52 40,-58 40,-12 C44,20 46,52 42,80 Q36,90 28,84 Q22,92 14,84 L-16,84 Q-24,92 -30,84 Q-40,88 -42,76 C-44,48 -42,16 -36,-14 Z"/>
-                <!-- jasmine gajra falling with the hair -->
-                <g stroke-width="1.1">
-                  <g transform="translate(262 186)"><g fill="#FFFDF6"><circle cx="0" cy="-2.6" r="2"/><circle cx="2.5" cy="-0.8" r="2"/><circle cx="1.6" cy="2.2" r="2"/><circle cx="-1.6" cy="2.2" r="2"/><circle cx="-2.5" cy="-0.8" r="2"/></g><circle r="1" fill="#C9A66B" stroke="none"/></g>
-                  <g transform="translate(259 196)"><g fill="#FFFDF6"><circle cx="0" cy="-2.6" r="2"/><circle cx="2.5" cy="-0.8" r="2"/><circle cx="1.6" cy="2.2" r="2"/><circle cx="-1.6" cy="2.2" r="2"/><circle cx="-2.5" cy="-0.8" r="2"/></g><circle r="1" fill="#C9A66B" stroke="none"/></g>
-                  <g transform="translate(262 206)"><g fill="#FFFDF6"><circle cx="0" cy="-2.6" r="2"/><circle cx="2.5" cy="-0.8" r="2"/><circle cx="1.6" cy="2.2" r="2"/><circle cx="-1.6" cy="2.2" r="2"/><circle cx="-2.5" cy="-0.8" r="2"/></g><circle r="1" fill="#C9A66B" stroke="none"/></g>
-                </g>
-              </g>
-
-              <!-- RIGHT ARM (groom side, extends toward him). #bride-arm-r: shoulder pivot 276 216.
-                   #bride-forearm-r: elbow pivot 276 258. #bride-hand: wrist pivot 276 298.
-                   #ring-finger: ring finger base. -->
-              <g id="bride-arm-r">
-                <g transform="rotate(30 276 216)">
-                  <path fill="#D9A27F" d="M266,222 L286,222 L285,258 A10,10 0 0 1 266,258 Z"/>
-                  <g id="bride-forearm-r">
-                    <g transform="rotate(30 276 258)">
-                      <g id="bride-hand">
-                        <!-- open, relaxed hand: thumb (palm side), then palm and four fingers held together -->
-                        <path fill="#D9A27F" d="M284,301 C291,303 294,310 291,317 C290,320 286,320 285,317 Z"/>
-                        <path fill="#D9A27F" d="M267,298 C266,308 266,320 268,330 C269,336 274,339 279,337 C283,335 285,330 285,324 L285,298 Z"/>
-                        <path stroke="#B9805E" stroke-width="1.1" d="M271.5,317 C271.5,325 272,331 273,335 M276,317 C276,326 276.5,332 277,337 M280.5,317 C280.5,324 281,329 282,333"/>
-                        <path fill="#E8A3A0" stroke="none" d="M268.6,331 a1.6,1.6 0 0 0 3,1.2 z"/>
-                        <circle id="ring-finger" cx="273.8" cy="320" r="1" fill="none" stroke="none"/>
-                      </g>
-                      <path fill="#D9A27F" d="M267,258 A9,9 0 0 1 285,258 L284,298 L268,298 Z"/>
-                      <g fill="#C9A66B" stroke-width="1.6">
-                        <path d="M266.5,282 L285.5,282 L285.5,286 L266.5,286 Z"/>
-                        <path fill="#B76E79" d="M266.5,287 L285.5,287 L285.5,290 L266.5,290 Z"/>
-                        <path d="M266.5,291 L285.5,291 L285.5,295 L266.5,295 Z"/>
-                      </g>
-                    </g>
-                  </g>
-                  <!-- short choli sleeve -->
-                  <path fill="#A9505E" d="M264,214 C264,204 288,204 288,214 L287,240 Q276,244 265,240 Z"/>
-                  <path fill="#C9A66B" d="M265,236 Q276,240 287,236 L287,242 Q276,246 265,242 Z"/>
-                </g>
-              </g>
-
-              <!-- TORSO: choli and lehenga. Pivot (waist) 302 262. -->
-              <g id="bride-torso">
-                <!-- neck -->
-                <path fill="#D9A27F" d="M292,182 L292,214 L310,214 L310,182 Z"/>
-                <path fill="#C38865" stroke="none" d="M292,190 Q301,202 310,190 L310,198 Q301,208 292,198 Z"/>
-                <!-- lehenga skirt -->
-                <path fill="#A9505E" d="M284,262 L320,262 C332,330 360,400 384,468 Q306,490 226,468 C250,400 272,330 284,262 Z"/>
-                <path fill="#8C3F4C" stroke="none" d="M314,266 C326,330 352,400 375,468 L384,468 C360,400 332,330 320,262 Z"/>
-                <path fill="#8C3F4C" stroke="none" d="M286,270 C276,330 254,400 236,470 L228,468 C250,400 272,330 284,262 Z"/>
-                <path stroke="#8C3F4C" stroke-width="1.8" d="M296,272 Q286,370 270,472 M306,272 Q310,370 316,476 M290,300 Q276,380 254,468 M312,300 Q330,380 346,470"/>
-                <!-- gold border bands -->
-                <path fill="#C9A66B" d="M232,446 Q306,466 378,446 L384,468 Q306,490 226,468 Z"/>
-                <path fill="#C9A66B" d="M247,414 Q306,428 364,414 L366,422 Q306,436 244,422 Z"/>
-                <g fill="#F3DFAE" stroke="none">
-                  <circle cx="248" cy="461" r="1.6"/><circle cx="266" cy="465" r="1.6"/><circle cx="286" cy="468" r="1.6"/>
-                  <circle cx="306" cy="469" r="1.6"/><circle cx="326" cy="468" r="1.6"/><circle cx="346" cy="465" r="1.6"/>
-                  <circle cx="364" cy="461" r="1.6"/>
-                </g>
-                <!-- buti motifs -->
-                <g fill="#D8A86A" stroke="none" opacity="0.9">
-                  <circle cx="280" cy="340" r="2"/><circle cx="312" cy="330" r="2"/><circle cx="300" cy="372" r="2"/>
-                  <circle cx="268" cy="388" r="2"/><circle cx="334" cy="380" r="2"/><circle cx="322" cy="400" r="2"/>
-                  <circle cx="286" cy="404" r="2"/><circle cx="296" cy="300" r="2"/>
-                </g>
-                <!-- choli -->
-                <path fill="#A9505E" d="M286,212 C296,220 306,220 316,212 C326,212 334,216 334,226 C334,240 324,252 320,262 L284,262 C280,252 270,240 270,226 C270,216 278,212 286,212 Z"/>
-                <path fill="#8C3F4C" stroke="none" d="M322,218 C330,222 332,236 324,252 L320,262 L316,262 C322,248 326,232 322,218 Z"/>
-                <path fill="none" stroke="#C9A66B" stroke-width="2.5" d="M287,214 C296,224 306,224 315,214"/>
-                <!-- waistband -->
-                <path fill="#C9A66B" d="M282,258 L322,258 L323,267 L281,267 Z"/>
-                <path stroke="#F3DFAE" stroke-width="1.2" stroke-dasharray="1.5 3.5" d="M285,262.5 L320,262.5"/>
-                <!-- necklace -->
-                <path fill="none" stroke="#C9A66B" stroke-width="2.4" d="M293,206 Q301,222 309,206"/>
-                <circle cx="301" cy="218" r="3" fill="#C9A66B" stroke-width="1.4"/>
-                <circle cx="301" cy="218" r="1.3" fill="#B76E79" stroke="none"/>
-              </g>
-
-              <!-- LEFT ARM (far side, rests by her side). #bride-arm-l: shoulder pivot 328 216.
-                   #bride-forearm-l: elbow pivot 328 258. -->
-              <g id="bride-arm-l">
-                <g transform="rotate(-10 328 216)">
-                  <g id="bride-forearm-l">
-                    <g transform="rotate(-18 328 258)">
-                      <path fill="#D9A27F" d="M320,298 C318,308 320,318 326,320 C333,322 337,314 336,298 Z"/>
-                      <path fill="#D9A27F" d="M321,302 C315,305 315,311 320,313"/>
-                      <path fill="#D9A27F" d="M319,258 A9,9 0 0 1 337,258 L336,298 L320,298 Z"/>
-                      <g fill="#C9A66B" stroke-width="1.6">
-                        <path d="M318.5,282 L337.5,282 L337.5,286 L318.5,286 Z"/>
-                        <path fill="#B76E79" d="M318.5,287 L337.5,287 L337.5,290 L318.5,290 Z"/>
-                        <path d="M318.5,291 L337.5,291 L337.5,295 L318.5,295 Z"/>
-                      </g>
-                    </g>
-                  </g>
-                  <path fill="#D9A27F" d="M318,222 L338,222 L337,258 A10,10 0 0 1 319,258 Z"/>
-                  <path fill="#A9505E" d="M316,214 C316,204 340,204 340,214 L339,240 Q328,244 317,240 Z"/>
-                  <path fill="#C9A66B" d="M317,236 Q328,240 339,236 L339,242 Q328,246 317,242 Z"/>
-                </g>
-              </g>
-
-              <!-- HEAD. #bride-head: neck pivot 301 192. -->
-              <g id="bride-head">
-                <g transform="translate(300 152)">
-                  <!-- ear and jhumka -->
-                  <path fill="#D9A27F" d="M28,-4 C40,-10 43,10 33,14 C30,15 28,13 28,12 Z"/>
-                  <path stroke="#C38865" stroke-width="1.5" d="M33,0 Q37,5 32,9"/>
-                  <path stroke="#C9A66B" stroke-width="1.6" d="M33,14 L33,19"/>
-                  <path fill="#C9A66B" stroke-width="1.6" d="M27,27 Q27,18 33,18 Q39,18 39,27 Z"/>
-                  <g fill="#F3DFAE" stroke="none"><circle cx="28.5" cy="30" r="1.3"/><circle cx="33" cy="31" r="1.3"/><circle cx="37.5" cy="30" r="1.3"/></g>
-                  <!-- face -->
-                  <path fill="#D9A27F" d="M31,-22 C33,6 23,32 -2,38 C-24,35 -33,14 -31,-22 C-30,-46 31,-46 31,-22 Z"/>
-                  <!-- cheeks -->
-                  <ellipse cx="-20" cy="15" rx="7.5" ry="4.5" fill="#E8776F" stroke="none" opacity="0.55"/>
-                  <ellipse cx="18" cy="15" rx="7" ry="4.5" fill="#E8776F" stroke="none" opacity="0.55"/>
-                  <!-- blush that deepens when the ring slides on (js/proposal.js fades it in) -->
-                  <g id="bride-blush" stroke="none" fill="#E25F6A" opacity="0">
-                    <ellipse cx="-20" cy="15.5" rx="9.5" ry="5.6" opacity="0.6"/>
-                    <ellipse cx="18" cy="15.5" rx="9" ry="5.6" opacity="0.6"/>
-                  </g>
-                  <!-- eyes, glancing shyly down toward him -->
-                  <g>
-                    <ellipse cx="-12" cy="3" rx="7.5" ry="9" fill="#FFFFFF" stroke-width="1.6"/>
-                    <ellipse cx="-13.5" cy="5" rx="5.6" ry="7" fill="#4A2A18" stroke="none"/>
-                    <ellipse cx="-13.5" cy="5.5" rx="3" ry="3.8" fill="#1E120C" stroke="none"/>
-                    <circle cx="-15.5" cy="2" r="2.3" fill="#FFFFFF" stroke="none"/>
-                    <circle cx="-11.4" cy="8.5" r="1" fill="#FFFFFF" stroke="none"/>
-                    <path stroke-width="3.2" d="M-20,0 Q-12,-8 -4,-1"/>
-                    <path stroke-width="2" d="M-19.5,0.5 L-23,-3"/>
-                  </g>
-                  <g>
-                    <ellipse cx="14" cy="3" rx="7" ry="9" fill="#FFFFFF" stroke-width="1.6"/>
-                    <ellipse cx="12.5" cy="5" rx="5.3" ry="7" fill="#4A2A18" stroke="none"/>
-                    <ellipse cx="12.5" cy="5.5" rx="2.9" ry="3.8" fill="#1E120C" stroke="none"/>
-                    <circle cx="10.6" cy="2" r="2.2" fill="#FFFFFF" stroke="none"/>
-                    <circle cx="14.6" cy="8.5" r="1" fill="#FFFFFF" stroke="none"/>
-                    <path stroke-width="3.2" d="M7,-1 Q14,-8 21,0"/>
-                    <path stroke-width="2" d="M20.5,0.5 L24,-3"/>
-                  </g>
-                  <!-- brows -->
-                  <path stroke="#3A2620" stroke-width="2.2" d="M-20,-11 Q-13,-15 -6,-12"/>
-                  <path stroke="#3A2620" stroke-width="2.2" d="M7,-12 Q14,-15 20,-11"/>
-                  <!-- nose and nath -->
-                  <path stroke="#B57A5A" stroke-width="1.8" d="M-3,10 Q-7,15 -2,17"/>
-                  <path fill="none" stroke="#B8945A" stroke-width="0.9" d="M2.6,15.4 Q20,24 31,5"/>
-                  <circle cx="0.6" cy="17.6" r="3.1" fill="none" stroke="#7A5A2A" stroke-width="2.4"/>
-                  <circle cx="0.6" cy="17.6" r="3.1" fill="none" stroke="#E2C27E" stroke-width="1.2"/>
-                  <circle cx="1.4" cy="20.6" r="1.1" fill="#FFF6E2" stroke="#7A5A2A" stroke-width="0.6"/>
-                  <!-- small shy smile -->
-                  <path fill="#B04A55" stroke-width="1.8" d="M-10,25 Q-4,27 2,25 Q-1,31 -4,31 Q-8,30 -10,25 Z"/>
-                  <!-- front hair with centre parting -->
-                  <path fill="#2E211D" d="M-4,-44 C-20,-44 -34,-32 -34,-10 C-34,4 -36,20 -38,30 C-30,16 -30,-4 -26,-16 C-20,-28 -12,-32 -4,-34 Z"/>
-                  <path fill="#2E211D" d="M-4,-44 C14,-45 34,-34 34,-10 C34,-2 33,4 33,8 C30,-6 26,-20 18,-27 C10,-32 2,-34 -4,-34 Z"/>
-                  <path stroke="#4A3630" stroke-width="1.6" d="M-10,-40 Q-24,-34 -28,-18 M4,-40 Q20,-38 28,-24"/>
-                  <!-- maang tikka -->
-                  <path stroke="#C9A66B" stroke-width="1.4" d="M-4,-46 L-4,-30"/>
-                  <circle cx="-4" cy="-28" r="3" fill="#C9A66B" stroke-width="1.4"/>
-                  <path fill="#B76E79" stroke-width="1.4" d="M-4,-25 Q-7,-21 -4,-17 Q-1,-21 -4,-25 Z"/>
-                </g>
-              </g>
-
-              <!-- DUPATTA over her head and left shoulder. Pivot (crown) 300 110. -->
-              <g id="dupatta">
-                <g transform="translate(0 6)">
-                <path fill="#F2C9C4" d="M262,138 C258,92 290,72 316,82 C338,90 348,112 346,138 C350,170 356,210 352,240 C346,280 342,330 344,380 L328,384 C326,330 326,270 330,230 C334,200 336,170 332,146 C328,116 312,102 294,102 C278,102 268,116 266,140 Z"/>
-                <path fill="#E5AFAA" stroke="none" d="M336,150 C342,180 346,214 342,240 C338,280 334,330 336,382 L328,384 C326,330 326,270 330,230 C334,200 336,170 332,146 Z"/>
-                <!-- gold border on the face edge -->
-                <path fill="none" stroke="#C9A66B" stroke-width="3" d="M265,138 C263,114 276,103 294,102 C312,102 328,116 332,146 C336,172 334,200 330,230 C326,270 326,330 328,384"/>
-                <!-- jasmine peeking at the edge of the veil -->
-                <path stroke="#8C6A35" stroke-width="1.4" d="M330,384 L329,391 M334,383 L334,390 M338,382 L339,389 M342,381 L343,388"/>
-                </g>
-              </g>
-            </g>
-          </g>
-        </svg>
-          <div id="ring-anchor-hands" class="ring-anchor ring-anchor--hands" aria-hidden="true"></div>
-        </div>
-      </div>
-
       <div class="proposal__text">
         <ul class="beats reveal" aria-label="The proposal, in three moments">
           <li class="beat is-on" data-beat="0">One knee</li>
@@ -810,30 +418,38 @@
           </h2>
           <p class="proposal__desc">One knee, one ring and one very nervous question. The rest is a lifetime.</p>
         </div>
-        <div class="proposal__actions reveal">
-          <a id="add-calendar" class="cell cell--ink" href="assets/karan-swathi-engagement.ics" data-ics>Add to calendar</a>
-          <a class="cell cell--tone" href="https://wa.me/?text=Karan%20%26%20Swathi%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share the invitation</a>
-        </div>
       </div>
-    </section>
 
-    <!-- The visit card on a picture of old Chamrajpet -->
-    <section id="venue" class="section section--venue" aria-labelledby="venue-title">
-      <figure class="venue__picture">
-        <img src="assets/found/tipu-palace-1792.webp" width="1920" height="1143" loading="lazy" decoding="async" alt="Watercolour of a courtyard before a long colonnaded palace front with green and red pillars, a tree and a few figures in the foreground">
-        <figcaption class="venue__caption">Tipu Sultan’s palace in Chamrajpet, as James Hunter painted it in 1792.</figcaption>
-      </figure>
-      <div class="visit-card reveal">
-        <h2 id="venue-title" class="title visit__title">Udupi Aatithya</h2>
-        <address class="visit__address">11, 5th Main Rd, near Makkala Koota Park,<br> Chikkanna Garden, Chamrajpet, Bengaluru</address>
-        <dl class="visit__rows">
-          <div><dt>Sunday</dt><dd>15 November 2026</dd></div>
-          <div><dt>Ring ceremony</dt><dd>11:00 AM</dd></div>
-          <!-- sample: confirm -->
-          <div><dt>Lunch</dt><dd>12:30 PM</dd></div>
-        </dl>
-        <a id="directions" class="btn btn--accent btn--block" href="https://www.google.com/maps/dir/?api=1&amp;destination=12.9570977,77.5703652" target="_blank" rel="noopener">Get directions</a>
-        <a class="link visit__calendar" href="assets/karan-swathi-engagement.ics" data-ics>Add to calendar</a>
+      <div class="proposal__scene">
+        <figure class="portrait">
+          <div class="portrait__frame">
+            <picture>
+              <source srcset="assets/karan-swathi-portrait.webp" type="image/webp">
+              <img id="portrait" class="portrait__img" src="assets/karan-swathi-portrait.jpg" width="1024" height="1536" loading="lazy" decoding="async" alt="Illustrated portrait of Karan and Swathi; Swathi holds red roses and looks up at Karan.">
+            </picture>
+            <!-- where the rings arrive from the programme: on the bouquet, above her hands -->
+            <div id="ring-anchor-hands" class="ring-anchor ring-anchor--hands" aria-hidden="true"></div>
+          </div>
+        </figure>
+
+        <!-- The visit card, laid over the portrait once the ring is on -->
+        <section id="venue" class="visit" aria-labelledby="venue-title" tabindex="-1">
+          <div class="visit-card reveal">
+            <h2 id="venue-title" class="title visit__title">Udupi Aatithya</h2>
+            <address class="visit__address">11, 5th Main Rd, near Makkala Koota Park, Chikkanna Garden, Chamrajpet, Bengaluru</address>
+            <dl class="visit__rows">
+              <div><dt>Sunday</dt><dd>15 November 2026</dd></div>
+              <div><dt>Ring ceremony</dt><dd>11:00 AM</dd></div>
+              <!-- sample: confirm -->
+              <div><dt>Lunch</dt><dd>12:30 PM</dd></div>
+            </dl>
+            <a id="directions" class="btn btn--accent btn--block" href="https://www.google.com/maps/dir/?api=1&amp;destination=12.9570977,77.5703652" target="_blank" rel="noopener">Get directions</a>
+            <p class="visit__links">
+              <a id="add-calendar" class="link" href="assets/karan-swathi-engagement.ics" data-ics>Add to calendar</a>
+              <a class="link" href="https://wa.me/?text=Karan%20%26%20Swathi%20are%20getting%20engaged%20on%20Sunday%2C%2015%20November%202026%2C%20at%2011%20in%20the%20morning%2C%20at%20Udupi%20Aatithya%2C%20Chamrajpet%2C%20Bengaluru.%20Your%20invitation%3A%20https%3A%2F%2Fkaran-swathi.vercel.app%2F" data-share target="_blank" rel="noopener">Share the invitation</a>
+            </p>
+          </div>
+        </section>
       </div>
     </section>
   </main>
@@ -874,7 +490,7 @@
         </div>
       </details>
 
-      <p class="imprint">Pictures and footage of the world around us, with thanks to their makers: <a href="https://commons.wikimedia.org/wiki/File:Memorable_Coffee.jpg">“Memorable Coffee”</a> by K.Sreeram 2603, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a>; <a href="https://commons.wikimedia.org/wiki/File:Mangaluru_Mallige_(Mangalore_Jasmine_Flower)_5.jpg">“Mangaluru Mallige (Mangalore Jasmine Flower) 5”</a> by Yakshitha, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Deepavali_diyas_in_RR_Nagar,_Bangalore_(2025).webm">“Deepavali diyas in RR Nagar, Bangalore (2025)”</a> by Gpkp, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:James_Hunter_-_Tipu_Sultan%27s_Summer_Palace_-_B1974.12.1168_-_Yale_Center_for_British_Art.jpg">“Tipu Sultan’s Summer Palace”</a> by James Hunter, 1792, Yale Center for British Art, <a href="https://creativecommons.org/publicdomain/mark/1.0/">public domain</a>; <a href="https://commons.wikimedia.org/wiki/File:Jasmine_(376619150).jpg">“Jasmine”</a> by Dinesh Valke, <a href="https://creativecommons.org/licenses/by-sa/2.0">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Marigold_Flowers_as_garland.jpg">“Marigold Flowers as garland”</a> by SnapMeUp, <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>; all via Wikimedia Commons, cropped and lightly toned (shared under the same licences). Drawings of Karan, Swathi and the rings are our own.</p>
+      <p class="imprint">Pictures and footage of the world around us, with thanks to their makers: <a href="https://commons.wikimedia.org/wiki/File:Memorable_Coffee.jpg">“Memorable Coffee”</a> by K.Sreeram 2603, <a href="https://creativecommons.org/publicdomain/zero/1.0/deed.en">CC0</a>; <a href="https://commons.wikimedia.org/wiki/File:Mangaluru_Mallige_(Mangalore_Jasmine_Flower)_5.jpg">“Mangaluru Mallige (Mangalore Jasmine Flower) 5”</a> by Yakshitha, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Deepavali_diyas_in_RR_Nagar,_Bangalore_(2025).webm">“Deepavali diyas in RR Nagar, Bangalore (2025)”</a> by Gpkp, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Jasmine_(376619150).jpg">“Jasmine”</a> by Dinesh Valke, <a href="https://creativecommons.org/licenses/by-sa/2.0">CC BY-SA 2.0</a>; <a href="https://commons.wikimedia.org/wiki/File:Marigold_Flowers_as_garland.jpg">“Marigold Flowers as garland”</a> by SnapMeUp, <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>; all via Wikimedia Commons, cropped and lightly toned (shared under the same licences). The portrait of Karan and Swathi is their own, and so are the drawings of the rings.</p>
     </div>
   </footer>
 

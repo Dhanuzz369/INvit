@@ -108,7 +108,8 @@ function watchRows() {
 
 // If the motion layer throws, drop back to the static page: every detail
 // readable, nothing locked, pinned or still ticking, and no inline state left
-// behind by GSAP (names waiting at opacity 0, reveals mid rise, posed couple).
+// behind by GSAP (names waiting at opacity 0, reveals mid rise); the portrait
+// back at its own size and the visit card in its place (stopProposal).
 function fallBack(err) {
   console.error(err);
   try {
@@ -117,7 +118,7 @@ function fallBack(err) {
     gsap.globalTimeline.getChildren(true, true, true).forEach((t) => t.kill());
     const touched = document.querySelectorAll(
       '#hero-names > span, #tagline .w, .reveal, #ring-stage .ring, #ring-stage .ring > *,' +
-        ' #couple-svg g[id], #proposal-yes, .proposal__ask, #envelope *'
+        ' #proposal-yes, .proposal__ask, #envelope *'
     );
     // only what GSAP actually touched (el._gsap), so untouched SVG keeps its markup
     const cleared = [...touched].filter((el) => el._gsap);

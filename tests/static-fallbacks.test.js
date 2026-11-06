@@ -21,14 +21,7 @@ test('the precomputed envelope shades are plain colours', () => {
 
 test('overflow-x: clip has a hidden fallback; svh custom property has a vh fallback', () => {
   assert.match(css, /overflow-x: hidden;[^\n]*\n\s*overflow-x: clip;/);
-  assert.match(css, /@supports not \(height: 1svh\)\s*\{\s*\.section--proposal \{ --stage-w: [^}]*70vh/);
-});
-
-test('the couple is described as shown: standing by default, kneeling only once the scene can play', () => {
-  const tag = html.match(/<div id="couple-stage"[^>]*>/)[0];
-  assert.match(tag, /aria-label="Karan and Swathi stand together, holding hands"/);
-  assert.match(tag, /data-label-static="Karan and Swathi stand together, holding hands"/);
-  assert.match(tag, /data-label-motion="Karan kneels and places the ring on Swathi's finger"/);
+  assert.match(css, /@supports not \(height: 1svh\)\s*\{\s*\.section--proposal \{ --pic-h: [^}]*100vh/);
 });
 
 test('.vercelignore keeps the build tooling and notes out of the deploy', () => {
@@ -42,7 +35,6 @@ test('.vercelignore keeps the build tooling and notes out of the deploy', () => 
 test('the dead hand-off exports are gone', () => {
   assert.ok(!/export function getJourneyTimeline/.test(read('js/journey.js')));
   assert.ok(!/export function getHandsPose\b/.test(read('js/journey.js')));
-  assert.ok(!/export function setPose\b/.test(read('js/couple-poses.js')));
 });
 
 test('stage level ring groups never go through GSAP transforms', () => {

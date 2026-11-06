@@ -1,7 +1,7 @@
 /* Karan & Swathi: engagement invitation
    The page is a set of stationery for the day: the invitation card on a
-   mehndi green field, the story on paper, the programme card, the proposal
-   plate, a visit card over old Chamrajpet, and the back of the card.
+   mehndi green field, the story on paper, the programme card, the couple's
+   portrait with the visit card laid over it, and the back of the card.
 
    Static look and layout. Everything is visible by default; states that hide
    content before an animation live only under html.js-anim (added by JS once
@@ -15,8 +15,8 @@
   --field: #4F6150;               /* mehndi green: hero, programme, footer fields */
   --field-step: #5C6F5C;          /* one tone up from the field: programme bars (paper text 4.66:1) */
   --paper: #F6ECE8;               /* blush paper: cards, story, visit card, back of the card */
-  --paper-step: #EADCD6;          /* one tone down from paper: proposal field, host tool */
-  --paper-deep: #DCCBC4;          /* two tones down: the quiet action cell */
+  --paper-step: #EADCD6;          /* one tone down from paper: the portrait's mat, host tool */
+  --paper-deep: #DCCBC4;          /* two tones down: the portrait's frame while it loads */
   --ink: #2F3A2E;                 /* deep sage: all running text (10.2:1 on paper) */
   --accent: #9A5662;              /* rose deep: the action and the diamonds (paper on it 4.66:1) */
   --accent-press: #864A55;
@@ -62,9 +62,11 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
 
-  /* Field coloured circles for the card's scooped corners, and the paper
-     scallops along the top of the back of the card */
+  /* Field coloured circles for the card's scooped corners (ink coloured for
+     the portrait's mat, on the ink ground), and the paper scallops along the
+     top of the back of the card */
   --notch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Ccircle cx='1' cy='1' r='1' fill='%234F6150'/%3E%3C/svg%3E");
+  --notch-ink: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Ccircle cx='1' cy='1' r='1' fill='%232F3A2E'/%3E%3C/svg%3E");
   --scallop: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 1'%3E%3Cpath d='M0 1 A1 1 0 0 1 2 1 Z' fill='%23F6ECE8'/%3E%3C/svg%3E");
 }
 
@@ -644,53 +646,117 @@ details[open] > summary .bar__plus { transform: rotate(45deg); }
 }
 .programme__picture figcaption { color: var(--on-field); }
 
-/* ---------- The proposal ---------- */
+/* ---------- The proposal: the couple's portrait, then the visit card on it ---------- */
+/* The portrait is mounted like the invitation card: a paper mat with scooped
+   corners, hung in the page's one dark room (the ink ground), no outline, no
+   shadow. Its size comes from the
+   screen: on a phone the text sits above it and the mat ends at the bottom of
+   the screen, so the visit card that follows (overlapping the mat's bottom
+   edge) stays out of sight while the scene is pinned. The picture may be
+   cropped to 3:4 at most (top first: the ring hand is near its bottom). */
 .section--proposal {
-  background: var(--paper-step);
-  color: var(--ink);
-  min-height: 100vh; /* taste-skill-ignore: fallback for 100svh below */
-  min-height: 100svh; /* small viewport: the address bar showing or hiding never moves the ring anchors */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 1.25rem;
-  padding: calc(1rem + var(--safe-top)) calc(var(--margin) + var(--safe-right)) 1.5rem calc(var(--margin) + var(--safe-left));
+  --mat: 0.625rem;
+  --reserve: 14.5rem; /* the beats, the title and the line above the portrait */
+  --avail-w: calc(100vw - 2 * var(--margin) - 2 * var(--mat));
+  --pic-h: min(var(--avail-w) * 1.5, 100svh - 1rem - var(--reserve) - 2 * var(--mat));
+  --pic-w: min(var(--avail-w), var(--pic-h) * 0.75);
+  --venue-over: 0; /* 1 where the visit card is laid over the portrait's side (js/proposal.js reads it) */
+  background: var(--ink); /* the one dark room of the page: the portrait hangs in it */
+  color: var(--paper);
+  padding: calc(1rem + var(--safe-top)) calc(var(--margin) + var(--safe-right)) var(--section) calc(var(--margin) + var(--safe-left));
 }
-
-/* The couple stage is 4:5 inside a square paper plate */
-.section--proposal { --stage-w: min((100vw - 2rem) * 0.66, 19rem, 42svh * 4 / 5); }
 /* a custom property cannot fall back by repetition (svh would only fail
    where it is used), so browsers without svh get the vh value here */
 @supports not (height: 1svh) {
-  .section--proposal { --stage-w: min((100vw - 2rem) * 0.66, 19rem, 42vh * 4 / 5, 70vh * 4 / 5); }
+  .section--proposal { --pic-h: min(var(--avail-w) * 1.5, 100vh - 1rem - var(--reserve) - 2 * var(--mat)); }
 }
 
-.proposal__plate {
-  width: 100%;
-  max-width: calc(var(--stage-w) * 1.4);
-  aspect-ratio: 1;
-  margin: 0 auto;
-  background: var(--paper);
-  display: grid;
-  place-items: center;
+.proposal__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* close to the picture it introduces */
+  gap: 0.75rem;
+  /* fills the screen above the portrait */
+  min-height: calc(100vh - 1rem - var(--safe-top) - var(--pic-h) - 2 * var(--mat)); /* taste-skill-ignore: fallback for svh below */
+  min-height: calc(100svh - 1rem - var(--safe-top) - var(--pic-h) - 2 * var(--mat));
+  padding-bottom: 1.25rem;
 }
 
-.couple-stage {
+.beats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  font-size: var(--lead);
+  font-style: italic;
+  line-height: 1.3;
+}
+/* the moment playing carries the page's diamond; every beat stays at full contrast */
+.beat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.beat::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  background: currentColor;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+  transition: opacity 240ms ease, transform 320ms var(--ease-out);
+}
+.beat.is-on::before { opacity: 1; transform: rotate(45deg); }
+
+/* The question and the answer share one place */
+.proposal__titles { display: grid; line-height: 1.15; }
+.proposal__titles > * { grid-area: 1 / 1; align-self: end; } /* a one line answer sits on the question's last line */
+html:not(.js-anim) .proposal-yes { visibility: hidden; } /* static portrait: the question, no "yes" yet */
+html.js-anim .proposal-yes { opacity: 0; }
+
+.proposal__say { display: grid; gap: 0.75rem; }
+.proposal__desc { max-width: 34ch; }
+
+.proposal__scene { position: relative; }
+
+.portrait {
   position: relative;
-  z-index: 1;
-  width: var(--stage-w);
-  aspect-ratio: 4 / 5;
+  width: calc(var(--pic-w) + 2 * var(--mat));
+  margin: 0 auto;
+  padding: var(--mat);
+  background-color: var(--paper-step);
+  /* scooped corners, as on the invitation card: ground coloured circles */
+  background-image: var(--notch-ink), var(--notch-ink), var(--notch-ink), var(--notch-ink);
+  background-repeat: no-repeat;
+  background-size: calc(2 * var(--mat)) calc(2 * var(--mat));
+  background-position:
+    left calc(-1 * var(--mat)) top calc(-1 * var(--mat)),
+    right calc(-1 * var(--mat)) top calc(-1 * var(--mat)),
+    left calc(-1 * var(--mat)) bottom calc(-1 * var(--mat)),
+    right calc(-1 * var(--mat)) bottom calc(-1 * var(--mat));
 }
-
-.couple-svg {
+.portrait__frame {
+  position: relative;
+  width: var(--pic-w);
+  height: var(--pic-h);
+  overflow: hidden;
+  background: var(--paper-deep);
+}
+.portrait__frame picture,
+.portrait__img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+}
+.portrait__img {
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 85%;
+  /* the push-in (js/proposal.js) closes in between their faces and her hands */
+  transform-origin: 54% 66%;
 }
 
-/* petals and hearts of the finale (js/proposal.js), over the couple */
+/* jasmine and rose petals of the finale (js/proposal.js), over the picture */
 .proposal-fx {
   position: absolute;
   inset: 0;
@@ -700,114 +766,33 @@ details[open] > summary .bar__plus { transform: rotate(45deg); }
   pointer-events: none;
 }
 
-/* where the couple's hands meet when standing: viewBox (211, 280) of 400 x 500 */
+/* where the rings arrive: on the bouquet's wrap, above her hands
+   (about picture px 470, 1170 of 1024 x 1536) */
 .ring-anchor--hands {
   position: absolute;
-  left: 52.75%;
-  top: 56%;
+  left: 46%;
+  top: 76%;
   width: 4rem;
   height: 4rem;
   margin: -2rem 0 0 -2rem;
 }
 
-.proposal__text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-.beats {
-  display: flex;
-  gap: 1.25rem;
-  font-size: var(--lead);
-  font-style: italic;
-  line-height: 1.3;
-}
-.beat {
-  color: var(--ink-soft);
-  transition: color 300ms ease;
-}
-.beat.is-on { color: var(--ink); }
-
-/* The question and the answer share one place */
-.proposal__titles { display: grid; line-height: 1.15; }
-.proposal__titles > * { grid-area: 1 / 1; }
-html:not(.js-anim) .proposal-yes { visibility: hidden; } /* static couple stands: the question, no "yes" yet */
-html.js-anim .proposal-yes { opacity: 0; }
-
-.proposal__say { display: grid; gap: 0.875rem; }
-.proposal__desc { max-width: 34ch; }
-
-.proposal__actions {
-  display: grid;
-  gap: 6px;
-  margin-top: 0.5rem;
-}
-.cell {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3.5rem;
-  padding: 0.5rem 1rem;
-  font-size: var(--body);
-  font-weight: 500;
-  text-decoration: none;
-  text-align: center;
-  transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease;
-}
-.cell:active { transform: scale(0.98); }
-.cell--ink { background: var(--ink); color: var(--paper); }
-.cell--tone { background: var(--paper-deep); color: var(--ink); }
-@media (hover: hover) and (pointer: fine) {
-  .cell--ink:hover { background: #1F271E; }
-  .cell--tone:hover { background: #D2BFB7; }
-}
-
-/* ---------- The visit card on old Chamrajpet ---------- */
-.section--venue {
-  display: flow-root; /* the card's margin never collapses through the section */
-  background: var(--paper);
-  padding: 0 0 var(--section);
-}
-.venue__picture {
+/* The visit card. On a phone or tablet it follows the portrait and overlaps
+   the mat's bottom edge, below her hands; on wide screens it is laid over the
+   portrait's right side (Karan's sleeve), clear of their faces and her hand. */
+.visit {
   position: relative;
-  overflow: hidden;
-  height: 70vh; /* taste-skill-ignore: fallback for 70svh below */
-  height: 70svh;
-  background: #C9C2B0;
+  z-index: 2;
+  margin: calc(-1 * var(--mat) - 0.5rem) var(--mat) 0;
 }
-/* on a phone the picture is cropped to the colonnade, the sky trimmed away */
-.venue__picture img {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 130%;
-  object-fit: cover;
-  object-position: 64% 100%;
-}
-.venue__caption {
-  position: absolute;
-  left: calc(var(--margin) + var(--safe-left));
-  top: calc(var(--margin) + var(--safe-top));
-  max-width: min(26rem, calc(100% - 2 * var(--margin)));
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  background: var(--paper);
-  color: var(--ink);
-  font-style: italic;
-}
-
+#venue:focus { outline: none; }
 .visit-card {
-  position: relative;
-  z-index: 1;
-  margin: -5rem calc(var(--margin) + var(--safe-right)) 0 calc(var(--margin) + var(--safe-left));
-  padding: 1.75rem 1.5rem 1.5rem;
+  padding: 1.75rem 1.125rem 1.25rem;
   background: var(--paper);
   color: var(--ink);
 }
 .visit__title { line-height: 1.05; }
-.visit__address { margin-top: 0.75rem; }
+.visit__address { margin-top: 0.75rem; text-wrap: balance; }
 .visit__rows {
   margin: 1.5rem 0;
   display: grid;
@@ -819,27 +804,16 @@ html.js-anim .proposal-yes { opacity: 0; }
   gap: 1rem;
 }
 .visit__rows dd { font-variant-numeric: tabular-nums lining-nums; text-align: right; }
-.visit__calendar {
+.visit__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+  margin-top: 0.5rem;
+}
+.visit__links .link {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;
-  margin-top: 0.5rem;
-}
-
-/* a slow drift on the watercolour while the section passes (no script;
-   browsers without scroll timelines show it still) */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .venue__picture img {
-      animation: drift linear both;
-      animation-timeline: view();
-      animation-range: entry 0% exit 100%;
-    }
-  }
-}
-@keyframes drift {
-  from { transform: translateY(-3%) scale(1.08); }
-  to { transform: translateY(3%) scale(1.08); }
 }
 
 /* ---------- The back of the card (curtain footer) ---------- */
@@ -1010,15 +984,10 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
 
   .programme__layout { max-width: 40rem; margin: 0 auto; }
 
-  .section--proposal { --stage-w: min(40vw, 22rem, 46svh * 4 / 5); }
-  @supports not (height: 1svh) { .section--proposal { --stage-w: min(40vw, 22rem, 46vh * 4 / 5); } }
-
+  .section--proposal { --mat: 1rem; --reserve: 15rem; }
   .beats { font-size: var(--body); }
-  .proposal__actions { grid-template-columns: 1fr 1fr; }
-  .cell { min-height: 4.5rem; }
-
-  .venue__picture { height: 80svh; }
-  .visit-card { width: 25rem; margin: -10rem calc(var(--margin) + 2rem) 0 auto; padding: 2rem; }
+  .visit { width: min(30rem, var(--pic-w)); margin-inline: auto; }
+  .visit-card { padding: 2rem; }
 
   .closing { padding-top: 8rem; }
   .closing__panel { padding: 3rem 3rem 2rem; }
@@ -1041,32 +1010,56 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   .programme__word { font-size: var(--display); }
   .programme__picture { grid-column: 8 / 12; margin-top: 5.5rem; }
 
+  /* the text beside the portrait, as large as the screen allows (whole, 2:3);
+     the visit card follows it, overlapping its foot, as on a phone */
   .section--proposal {
+    --mat: 1.25rem;
+    --pic-h: min(100svh - 5rem - 2 * var(--mat), 38vw * 1.5);
+    --pic-w: calc(var(--pic-h) * 2 / 3);
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: center;
-    column-gap: var(--gutter);
-    padding: 3rem calc(var(--margin) + var(--safe-right)) 3rem calc(var(--margin) + var(--safe-left));
-    --stage-w: min(50vw - 9rem, 34rem, 66svh * 4 / 5);
+    grid-template-columns: minmax(0, 28rem) auto;
+    justify-content: center;
+    column-gap: 2.5rem;
+    align-items: start;
+    padding: 2.5rem calc(var(--margin) + var(--safe-right)) var(--section) calc(var(--margin) + var(--safe-left));
   }
-  @supports not (height: 1svh) { .section--proposal { --stage-w: min(50vw - 9rem, 34rem, 66vh * 4 / 5); } }
-  .proposal__plate { max-width: none; width: calc(var(--stage-w) * 1.32); }
+  @supports not (height: 1svh) {
+    .section--proposal { --pic-h: min(100vh - 5rem - 2 * var(--mat), 38vw * 1.5); }
+  }
+  /* the beats level with the top of the picture, the title and line with its foot */
   .proposal__text {
+    grid-column: 1;
     justify-content: space-between;
-    gap: 2rem;
-    max-width: 36rem;
-    min-height: calc(var(--stage-w) * 1.32);
+    min-height: 0;
+    height: calc(var(--pic-h) + 2 * var(--mat));
+    max-width: 28rem;
+    padding: var(--mat) 0;
   }
-  .beats { gap: 2rem; }
+  .beats { flex-direction: column; gap: 0.5rem; }
+  .proposal__scene { grid-column: 2; width: calc(var(--pic-w) + 2 * var(--mat)); }
+  .visit { width: auto; margin-inline: var(--mat); }
 
-  .section--venue { min-height: 135vh; min-height: 135svh; padding: 0; } /* taste-skill-ignore */
-  .venue__picture { position: absolute; inset: 0; height: auto; }
-  .venue__picture img { height: 135%; object-position: 50% 100%; }
-  .venue__caption { top: auto; bottom: calc(var(--margin) + var(--safe-bottom)); max-width: none; }
-  .visit-card {
-    position: sticky;
-    top: 3.75rem;
-    margin: 3.75rem 3.75rem 0 auto;
+  /* Screens with room for it: the visit card is laid over the portrait's right
+     side (Karan's sleeve), below his face and clear of her hands, reaching out
+     onto the ground; it arrives at the end of the pin (js/proposal.js). */
+  @media (min-width: 83rem) and (min-height: 52.5rem) {
+    .section--proposal {
+      --venue-over: 1;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      justify-content: stretch;
+      column-gap: 1.5rem;
+      align-items: center;
+      min-height: 100vh; /* taste-skill-ignore: fallback for 100svh below */
+      min-height: 100svh;
+      padding-bottom: 2.5rem;
+    }
+    .visit {
+      position: absolute;
+      left: calc(100% - 7.5rem);
+      top: 26%;
+      width: min(31rem, 50vw - var(--pic-w) / 2 + 4.5rem);
+      margin: 0;
+    }
   }
 
   .invite__when time { flex-direction: row; gap: 1.25rem; }
@@ -1153,7 +1146,7 @@ html.js-anim .envelope { cursor: pointer; }
 #hero-names:focus { outline: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .cell, .bar__plus, .bar summary { transition: none; }
+  .btn, .bar__plus, .bar summary, .beat::before { transition: none; }
   details[open] > .bar__panel,
   details[open] > .host-tool__body { animation: none; }
   html.js-anim .reveal,
