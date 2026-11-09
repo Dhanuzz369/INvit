@@ -446,6 +446,8 @@ html.js-anim #ring-stage .ring { opacity: 0; }
 /* Sowmya's family name: the same script, a smaller line under her name */
 .names__surname { display: block; font-size: 0.42em; line-height: 1.1; margin-top: 0.05em; }
 .names__amp { color: inherit; }
+/* With both full names the & gets its own small centred line between them */
+.names__two .names__amp { display: block; font-size: 0.5em; line-height: 1.1; }
 
 .invite__when,
 .invite__where {
@@ -998,6 +1000,7 @@ details[open] > .host-tool__summary .bar__plus { transform: rotate(45deg); }
   .names__one { left: -0.3em; }
   .names__two { left: 0.3em; }
   .names__surname { left: 0.7em; }
+  .names__surname--one { left: -0.1em; }
 
 
   .facts { display: flex; justify-content: space-between; gap: var(--gutter); margin-top: 2rem; }

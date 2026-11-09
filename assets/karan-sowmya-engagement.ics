@@ -1,13 +1,14 @@
 BEGIN:VCALENDAR
 VERSION:2.0
-PRODID:-//Karan and Sowmya Manjunath//Engagement Invitation//EN
+PRODID:-//Karan Narasimhamurthy and Sowmya Manjunath//Engagement Invitation
+ //EN
 CALSCALE:GREGORIAN
 BEGIN:VEVENT
 UID:20261115T053000Z-karan-swathi-engagement@invitation
-DTSTAMP:20261106T165102Z
+DTSTAMP:20261109T064210Z
 DTSTART:20261115T053000Z
 DTEND:20261115T083000Z
-SUMMARY:Karan & Sowmya Manjunath Engagement
+SUMMARY:Karan Narasimhamurthy & Sowmya Manjunath Engagement
 LOCATION:Udupi Aatithya\, 11\, 5th Main Rd\, near Makkala Koota Park\, Chik
  kanna Garden\, Chamrajpet\, Bengaluru\, Karnataka
 END:VEVENT

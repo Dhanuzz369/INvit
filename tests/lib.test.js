@@ -25,7 +25,7 @@ test('buildIcs produces a valid CRLF calendar with escaped commas', () => {
   assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
   assert.ok(ics.includes('DTSTART:20261115T053000Z'));
   assert.ok(ics.includes('DTEND:20261115T083000Z'));
-  assert.ok(ics.includes('SUMMARY:Karan & Sowmya Manjunath Engagement'));
+  assert.ok(ics.includes('SUMMARY:Karan Narasimhamurthy & Sowmya Manjunath Engagement'));
   assert.ok(ics.includes('LOCATION:Udupi Aatithya\\, 11\\, 5th Main Rd'));
   assert.ok(ics.includes('UID:'));
   assert.ok(ics.includes('DTSTAMP:'));

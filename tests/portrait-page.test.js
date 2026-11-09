@@ -14,7 +14,7 @@ test('the portrait replaces the caricature: real alt text, WebP with a JPEG fall
   assert.ok(!existsSync(new URL('../js/couple-poses.js', import.meta.url)));
   const img = html.match(/<img id="portrait"[^>]*>/)?.[0];
   assert.ok(img, 'img#portrait');
-  assert.match(img, /alt="Illustrated portrait of Karan and Sowmya Manjunath; Sowmya holds red roses and looks up at Karan\."/);
+  assert.match(img, /alt="Illustrated portrait of Karan Narasimhamurthy and Sowmya Manjunath; Sowmya holds red roses and looks up at Karan\."/);
   assert.match(img, /src="assets\/karan-sowmya-portrait\.jpg"/);
   assert.match(img, /width="1024" height="1536"/);
   assert.match(html, /<source srcset="assets\/karan-sowmya-portrait\.webp" type="image\/webp">/);
@@ -37,14 +37,14 @@ test('Sowmya Manjunath (not Swathi or Soumya) wherever a guest can see it (the d
   const visible = html.replace(/karan-swathi\.vercel\.app/g, '');
   assert.ok(!/swathi/i.test(visible));
   assert.ok(!/soumya/i.test(html), 'old spelling Soumya left in the page');
-  assert.match(html, /<title>Karan &amp; Sowmya Manjunath are getting engaged<\/title>/);
-  assert.match(html, /<span class="names__two">Sowmya<\/span>\s*<span class="names__surname">Manjunath<\/span>/);
-  assert.match(html, /property="og:title" content="Karan &amp; Sowmya Manjunath are getting engaged"/);
-  assert.match(html, /name="twitter:title" content="Karan &amp; Sowmya Manjunath are getting engaged"/);
-  assert.match(html, /id="closing-names"[^>]*>Karan &amp; Sowmya <span class="closing__surname">Manjunath<\/span></);
+  assert.match(html, /<title>Karan Narasimhamurthy &amp; Sowmya Manjunath are getting engaged<\/title>/);
+  assert.match(html, /<span class="names__one">Karan<\/span>\s*<span class="names__surname names__surname--one">Narasimhamurthy<\/span>\s*<span class="names__two"><span class="names__amp">&amp;<\/span> Sowmya<\/span>\s*<span class="names__surname">Manjunath<\/span>/);
+  assert.match(html, /property="og:title" content="Karan Narasimhamurthy &amp; Sowmya Manjunath are getting engaged"/);
+  assert.match(html, /name="twitter:title" content="Karan Narasimhamurthy &amp; Sowmya Manjunath are getting engaged"/);
+  assert.match(html, /id="closing-names"[^>]*>Karan <span class="closing__surname">Narasimhamurthy<\/span> &amp; Sowmya <span class="closing__surname">Manjunath<\/span></);
   assert.match(html, /K <span class="toprow__amp">&amp;<\/span> S/); // the monogram stays K & S
   const ics = read('assets/karan-sowmya-engagement.ics');
-  assert.match(ics, /SUMMARY:Karan & Sowmya Manjunath Engagement/);
+  assert.match(ics, /SUMMARY:Karan Narasimhamurthy & Sowmya Manjunath Engagement/);
   assert.ok(!/SUMMARY:.*Swathi|PRODID:.*Swathi/.test(ics));
 });
 
